@@ -1,116 +1,50 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>PGC Trivia</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PGC Trivia — Big Game</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f172a;color:#fff}
-.wrap{max-width:760px;margin:auto;padding:24px 16px 40px}.card{background:#1e293b;border-radius:22px;padding:22px;margin:14px 0}
-h1{font-size:38px;margin:8px 0}.sub{color:#cbd5e1}.logo{font-weight:800;color:#fbbf24}
-button,input{width:100%;padding:15px 16px;border-radius:14px;border:0;font-size:18px;margin-top:10px}
-button{background:#2563eb;color:#fff;font-weight:700;cursor:pointer}button.secondary{background:#475569}
-input{background:#f8fafc;color:#111827}.hidden{display:none}.code{font-size:42px;letter-spacing:8px;text-align:center;font-weight:900;color:#fbbf24;padding:15px}
-.q{font-size:25px;font-weight:800;line-height:1.25}.answers button{text-align:left;background:#334155}
-.answers button.selected{outline:4px solid #fbbf24}.notice{padding:12px;border-radius:12px;background:#172554;color:#bfdbfe;margin-top:10px}
-.player{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #334155}
-.score{font-size:22px;font-weight:800}.small{font-size:14px;color:#94a3b8}
-</style>
-</head>
-<body>
-<div class="wrap">
-<div class="logo">PLEASANT GROVE CHURCH</div>
-<h1>PGC Trivia 🎯</h1>
-<div class="sub">Bible • Church • Fun</div>
-
-<section id="home" class="card">
-<h2>Join or Host</h2>
-<button onclick="hostGame()">Host a Game</button>
-<button class="secondary" onclick="show('join')">Join a Game</button>
-</section>
-
-<section id="join" class="card hidden">
-<h2>Join Game</h2>
-<input id="code" maxlength="6" placeholder="Enter 6-digit room code" inputmode="numeric">
-<input id="name" maxlength="20" placeholder="Your name">
-<button onclick="joinGame()">Join</button>
-<button class="secondary" onclick="show('home')">Back</button>
-<p id="status" class="small"></p>
-</section>
-
-<section id="host" class="card hidden">
-<h2>Host Game</h2>
-<div id="room" class="code">------</div>
-<div class="notice">Give this 6-digit code to everyone playing.</div>
-<div id="players"></div>
-<button onclick="startGame()">Start Game</button>
-<button class="secondary" onclick="nextQuestion()">Next Question</button>
-<p id="hostStatus" class="small"></p>
-</section>
-
-<section id="game" class="card hidden">
-<div id="progress" class="small"></div>
-<div id="question" class="q"></div>
-<div id="answers" class="answers"></div>
-<div id="gameStatus" class="notice hidden"></div>
-</section>
-
-<section id="scores" class="card hidden">
-<h2>Leaderboard 🏆</h2>
-<div id="scoreList"></div>
-</section>
-</div>
-
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
-<script>
-const Q=[
-["Who built the ark?",["Moses","Noah","David","Peter"],1],
-["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem","Capernaum"],2],
-["What is the first book of the Bible?",["Exodus","Genesis","Matthew","Psalms"],1],
-["Who defeated Goliath?",["Saul","David","Jonathan","Solomon"],1],
-["How many disciples did Jesus choose?",["7","10","12","40"],2],
-["Who was the mother of Jesus?",["Mary","Martha","Ruth","Elizabeth"],0],
-["What did Jesus turn water into?",["Oil","Wine","Bread","Milk"],1],
-["Who led Israel out of Egypt?",["Joshua","Moses","Aaron","Samuel"],1],
-["How many books are in the New Testament?",["27","39","66","12"],0],
-["What is the shortest verse in the Bible?",["Jesus wept.","God is love.","Pray always.","Rejoice always."],0]
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1220;color:#fff}.wrap{max-width:1100px;margin:auto;padding:20px 14px 50px}.brand{text-align:center;color:#f5c542;font-weight:900;letter-spacing:1px}.tag{text-align:center;color:#aab5c7;margin-bottom:16px}h1{font-size:clamp(32px,7vw,58px);text-align:center;margin:5px 0}.card{background:#151f32;border:1px solid #26334a;border-radius:20px;padding:20px;margin:14px 0;box-shadow:0 10px 30px #0004}button,input{font:inherit}button{border:0;border-radius:13px;padding:14px 16px;background:#2857d9;color:#fff;font-weight:800;cursor:pointer;margin:5px 0}button.secondary{background:#35445e}.wide{width:100%}.hidden{display:none!important}.homeBtns{display:grid;grid-template-columns:1fr 1fr;gap:12px}.code{font-size:42px;letter-spacing:8px;font-weight:900;text-align:center;color:#f5c542;margin:8px}.notice{background:#1c2c4c;border-radius:12px;padding:12px;color:#dbe7ff;margin:10px 0}.players{display:grid;gap:7px}.player{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;background:#1c283c;border-radius:10px}.score{font-weight:900;color:#f5c542}.board{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.cat{background:#21314d;border-radius:12px;overflow:hidden}.cat h3{font-size:15px;text-align:center;margin:0;padding:10px 5px;min-height:58px;display:flex;align-items:center;justify-content:center}.cell{width:100%;border-radius:0;background:#254e96;color:#f5c542;font-size:22px}.cell.used{background:#263044;color:#68748a}.cell:disabled{opacity:1}.hostQ{border:2px solid #f5c542}.hostQ .bigq{font-size:26px;font-weight:900;line-height:1.25}.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.answers button{text-align:left;background:#293852}.answers button.correct{outline:3px solid #4ade80}.answers button.wrong{outline:3px solid #f87171}.status{font-size:14px;color:#aab5c7}.leader{display:grid;gap:8px}.rank{font-size:20px}.small{font-size:13px;color:#93a1b7}input{width:100%;padding:14px;border-radius:12px;border:0;margin:6px 0;background:#f7f8fa;color:#111}.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px;z-index:10}.modal .card{max-width:700px;width:100%;max-height:90vh;overflow:auto}@media(max-width:700px){.board{grid-template-columns:repeat(2,1fr)}.homeBtns,.answers{grid-template-columns:1fr}.cat h3{min-height:48px}.cell{font-size:19px}}
+</style></head><body><div class="wrap">
+<div class="brand">PLEASANT GROVE CHURCH</div><h1>PGC Trivia 🎯</h1><div class="tag">The Big Game • 11 Categories • 55 Questions</div>
+<section id="home" class="card"><h2>Welcome!</h2><div class="homeBtns"><button onclick="hostGame()">🎤 Host a Game</button><button class="secondary" onclick="show('join')">📱 Join a Game</button></div><p class="small">Players only need this webpage and the 6-digit game code. No GitHub account required.</p></section>
+<section id="join" class="card hidden"><h2>Join a Game</h2><input id="code" maxlength="6" placeholder="6-digit game code" inputmode="numeric"><input id="name" maxlength="20" placeholder="Your name"><button class="wide" onclick="joinGame()">Join Game</button><button class="secondary wide" onclick="show('home')">Back</button><p id="joinStatus" class="status"></p></section>
+<section id="host" class="hidden"><div class="card"><h2>Host Controls</h2><div class="notice">Game Code</div><div id="room" class="code">------</div><p class="status">Players open this same website, tap Join a Game, and enter the code.</p><div id="hostPlayers" class="players"></div><button class="wide" onclick="startGame()">▶️ Start Game</button><button class="secondary wide" onclick="finishGame()">🏆 Finish Game</button><p id="hostStatus" class="status"></p></div><div class="card"><h2>Choose a Question</h2><div id="board" class="board"></div></div><div id="hostQuestion" class="card hostQ hidden"><div id="hqCat" class="small"></div><div id="hqValue" class="score"></div><div id="hqText" class="bigq"></div><div id="hqAnswers" class="answers"></div><div id="responses" class="players"></div><button class="wide" onclick="closeQuestion()">Return to Board</button></div></section>
+<section id="playerGame" class="card hidden"><div id="pgProgress" class="small"></div><h2 id="pgCat"></h2><div id="pgQuestion" style="font-size:27px;font-weight:900;line-height:1.25"></div><div id="pgAnswers" class="answers"></div><div id="pgStatus" class="notice">Waiting for the host...</div></section>
+<section id="scores" class="card hidden"><h2>🏆 Final Leaderboard</h2><div id="finalScores" class="leader"></div><button class="wide" onclick="location.reload()">Play Again</button></section>
+</div><div id="modal" class="modal hidden"><div class="card"><h2 id="modalTitle"></h2><p id="modalText"></p><button class="wide" onclick="document.getElementById('modal').classList.add('hidden')">OK</button></div></div>
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script>
+const cats=[
+['U.S. History',[['Who was the first U.S. president?',['George Washington','Thomas Jefferson','Abraham Lincoln','John Adams'],0],['In what year was the Declaration of Independence adopted?',['1776','1781','1789','1801'],0],['Which U.S. state was the last to join the Union?',['Alaska','Hawaii','Arizona','Oklahoma'],1],['Who was president during most of the Civil War?',['Ulysses S. Grant','Andrew Johnson','Abraham Lincoln','James Buchanan'],2],['What purchase doubled the size of the United States in 1803?',['Alaska Purchase','Louisiana Purchase','Florida Purchase','Gadsden Purchase'],1]]],
+['Sports',[['How many points is a touchdown worth before any extra point?',['3','6','7','8'],1],['Which sport uses a puck?',['Soccer','Hockey','Tennis','Golf'],1],['How many players are on the field for one baseball team at a time?',['7','8','9','10'],2],['In golf, what is one stroke under par called?',['Eagle','Birdie','Bogey','Albatross'],1],['Which team has won the most Super Bowls through the 2025 season?',['Dallas Cowboys','Green Bay Packers','Pittsburgh Steelers','New England Patriots'],2]]],
+['Modern Music',[['Which singer released the album "1989"?',['Taylor Swift','Adele','Lady Gaga','Beyoncé'],0],['Which artist is known for the hit "Uptown Funk" with Mark Ronson?',['Bruno Mars','Ed Sheeran','Justin Timberlake','Usher'],0],['What instrument has 88 standard keys?',['Guitar','Violin','Piano','Trumpet'],2],['Which group recorded "I Want It That Way"?',['NSYNC','Backstreet Boys','Boyz II Men','Maroon 5'],1],['Which singer released "Rolling in the Deep"?',['Adele','Pink','Katy Perry','Rihanna'],0]]],
+['Geography',[['What is the largest ocean?',['Atlantic','Indian','Pacific','Arctic'],2],['What country is home to the Great Pyramid of Giza?',['Mexico','Egypt','Greece','Jordan'],1],['What is the capital of Canada?',['Toronto','Vancouver','Montreal','Ottawa'],3],['Which U.S. state is the largest by area?',['Texas','California','Alaska','Montana'],2],['Mount Everest is part of which mountain range?',['Andes','Rockies','Alps','Himalayas'],3]]],
+['Anatomy',[['What is the largest organ of the human body?',['Heart','Skin','Liver','Lung'],1],['How many chambers does the human heart have?',['2','3','4','5'],2],['Which bone is the longest in the body?',['Femur','Tibia','Humerus','Radius'],0],['What organ pumps blood through the body?',['Liver','Heart','Kidney','Pancreas'],1],['What part of the brain controls balance and coordination?',['Cerebellum','Brain stem','Frontal lobe','Hypothalamus'],0]]],
+['Bible',[['Who built the ark?',['Moses','Noah','David','Peter'],1],['Where was Jesus born?',['Nazareth','Jerusalem','Bethlehem','Capernaum'],2],['Who defeated Goliath?',['Saul','David','Jonathan','Solomon'],1],['How many disciples did Jesus choose?',['7','10','12','40'],2],['What is the first book of the Bible?',['Exodus','Genesis','Matthew','Psalms'],1]]],
+['Pop Culture',[['What fictional city is Batman associated with?',['Metropolis','Gotham City','Star City','Central City'],1],['Which movie features the character Jack Sparrow?',['The Matrix','Pirates of the Caribbean','Indiana Jones','Jurassic Park'],1],['What TV show features the coffee shop Central Perk?',['Friends','Seinfeld','Cheers','The Office'],0],['What is the name of the snowman in Frozen?',['Sven','Olaf','Kristoff','Hans'],1],['Which superhero is known as the Man of Steel?',['Batman','Iron Man','Superman','Thor'],2]]],
+['Literature',[['Who wrote Romeo and Juliet?',['William Shakespeare','Mark Twain','Charles Dickens','Jane Austen'],0],['What is the name of Sherlock Holmes’s friend?',['Watson','Baggins','Darcy','Hastings'],0],['Who wrote The Hobbit?',['C.S. Lewis','J.R.R. Tolkien','George Orwell','Ernest Hemingway'],1],['Which novel begins with the character Scout Finch?',['To Kill a Mockingbird','The Great Gatsby','Little Women','The Hobbit'],0],['Who wrote The Adventures of Tom Sawyer?',['Mark Twain','Stephen King','Jules Verne','Herman Melville'],0]]],
+['Space',[['What planet is known as the Red Planet?',['Venus','Mars','Jupiter','Mercury'],1],['What is the name of our galaxy?',['Andromeda','Milky Way','Whirlpool','Sombrero'],1],['How many planets are in our solar system?',['7','8','9','10'],1],['Which planet is the largest?',['Earth','Saturn','Jupiter','Neptune'],2],['What was the first human-made object to land on the Moon?',['Apollo 11','Luna 2','Sputnik 1','Voyager 1'],1]]],
+['Science',[['What gas do plants absorb from the atmosphere?',['Oxygen','Nitrogen','Carbon dioxide','Hydrogen'],2],['What is H2O commonly called?',['Salt','Water','Hydrogen peroxide','Oxygen'],1],['What force keeps us on the ground?',['Magnetism','Gravity','Friction','Pressure'],1],['How many bones are in the typical adult human body?',['106','206','306','406'],1],['What is the center of an atom called?',['Electron','Nucleus','Proton','Ion'],1]]],
+['Toys & Games',[['Which toy is made from interlocking plastic bricks?',['LEGO','Slinky','Etch A Sketch','Play-Doh'],0],['What toy has a metal coil that can walk down stairs?',['Yo-yo','Slinky','Rubik’s Cube','Frisbee'],1],['How many colored faces does a standard Rubik’s Cube have?',['4','5','6','8'],2],['Which board game includes Boardwalk and Park Place?',['Clue','Monopoly','Risk','Sorry!'],1],['What toy lets you draw by turning two knobs?',['Etch A Sketch','Easy-Bake Oven','View-Master','Hot Wheels'],0]]]
 ];
-
-let peer,conn,host=false,players={},room="",n=0,answered=false;
-
-function show(id){["home","join","host","game","scores"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}
-function code(){return Math.floor(100000+Math.random()*900000).toString()}
-function hostGame(){
- host=true;room=code();show("host");document.getElementById("room").textContent=room;
- peer=new Peer("pgc-"+room);
- peer.on("open",()=>document.getElementById("hostStatus").textContent="Waiting for players...");
- peer.on("connection",c=>{
-  c.on("open",()=>{players[c.peer]={name:"Player",score:0,c};renderPlayers();c.send({t:"welcome"})});
-  c.on("data",d=>{
-   if(d.t==="join"){players[c.peer].name=d.name;renderPlayers();send({t:"players",p:safe()})}
-   if(d.t==="answer"){if(d.i===Q[n][2])players[c.peer].score+=100;renderPlayers()}
-  });
-  c.on("close",()=>{delete players[c.peer];renderPlayers()})
- });
-}
-function safe(){let x={};Object.keys(players).forEach(k=>x[k]={name:players[k].name,score:players[k].score});return x}
-function send(d){Object.values(players).forEach(p=>{try{p.c.send(d)}catch(e){}})}
-function renderPlayers(){
- document.getElementById("players").innerHTML=Object.values(players).map(p=>`<div class="player"><span>${esc(p.name)}</span><span class="score">${p.score}</span></div>`).join("");
-}
-function startGame(){if(!Object.keys(players).length){document.getElementById("hostStatus").textContent="Have someone join first.";return}n=0;send({t:"q",n,q:Q[n]});document.getElementById("hostStatus").textContent="Question 1 of "+Q.length}
-function nextQuestion(){n++;if(n>=Q.length){send({t:"end",p:safe()});showScores(safe());return}send({t:"q",n,q:Q[n]});document.getElementById("hostStatus").textContent="Question "+(n+1)+" of "+Q.length}
-function joinGame(){
- room=document.getElementById("code").value.trim();let name=document.getElementById("name").value.trim()||"Player";
- if(room.length!==6){document.getElementById("status").textContent="Enter the 6-digit code.";return}
- show("game");document.getElementById("status").textContent="Connecting...";
- peer=new Peer();peer.on("open",()=>{conn=peer.connect("pgc-"+room);conn.on("open",()=>{conn.send({t:"join",name});document.getElementById("gameStatus").classList.remove("hidden");document.getElementById("gameStatus").textContent="Connected! Waiting for host..."}) ;conn.on("data",d=>{if(d.t==="q")renderQ(d.q,d.n);if(d.t==="end")showScores(d.p)})});
- peer.on("error",()=>document.getElementById("gameStatus").textContent="Could not connect. Check the code.");
-}
-function renderQ(q,i){answered=false;document.getElementById("progress").textContent="Question "+(i+1)+" of "+Q.length;document.getElementById("question").textContent=q[0];document.getElementById("answers").innerHTML=q[1].map((a,j)=>`<button onclick="answer(${j},this)">${esc(a)}</button>`).join("")}
-function answer(i,b){if(answered)return;answered=true;b.classList.add("selected");conn.send({t:"answer",i});document.getElementById("gameStatus").classList.remove("hidden");document.getElementById("gameStatus").textContent="Answer submitted! Waiting..."}
-function showScores(p){show("scores");document.getElementById("scoreList").innerHTML=Object.values(p).sort((a,b)=>b.score-a.score).map((x,i)=>`<div class="player"><span>${i+1}. ${esc(x.name)}</span><span class="score">${x.score}</span></div>`).join("")}
-function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
-</script>
-</body>
-</html>
+let peer=null,conn=null,room='',isHost=false,players={},started=false,used={},current=null,responses={};
+const allQ=[];cats.forEach((c,ci)=>c[1].forEach((q,qi)=>allQ.push({cat:ci,qi,value:(qi+1)*100,q:q[0],a:q[1],correct:q[2]})));
+function show(id){['home','join','host','playerGame','scores'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
+function gameCode(){return Math.floor(100000+Math.random()*900000).toString()}
+function hostGame(){isHost=true;room=gameCode();show('host');document.getElementById('room').textContent=room;renderBoard();peer=new Peer('pgc-big-'+room);peer.on('open',()=>setHostStatus('Waiting for players...'));peer.on('connection',c=>{c.on('open',()=>{players[c.peer]={name:'Player',score:0,c,answers:0};c.send({t:'hello'});renderPlayers()});c.on('data',d=>hostData(c,d));c.on('close',()=>{delete players[c.peer];renderPlayers()})});peer.on('error',e=>setHostStatus('Connection error. Try hosting again.'))}
+function hostData(c,d){if(d.t==='join'){players[c.peer].name=d.name||'Player';renderPlayers();broadcast({t:'players',p:safePlayers()})}if(d.t==='answer'&&current){let p=players[c.peer];if(p.answers===current.id)return;p.answers=current.id;responses[c.peer]={name:p.name,answer:d.i,correct:d.i===current.correct};if(d.i===current.correct)p.score+=current.value;renderHostResponses();renderPlayers();broadcast({t:'scores',p:safePlayers()})}}
+function safePlayers(){let o={};Object.keys(players).forEach(k=>o[k]={name:players[k].name,score:players[k].score});return o}
+function broadcast(d){Object.values(players).forEach(p=>{try{p.c.send(d)}catch(e){}})}
+function renderPlayers(){document.getElementById('hostPlayers').innerHTML=Object.values(players).sort((a,b)=>b.score-a.score).map(p=>`<div class="player"><span>${esc(p.name)}</span><span class="score">${p.score}</span></div>`).join('')||'<div class="small">No players yet.</div>'}
+function renderBoard(){document.getElementById('board').innerHTML=cats.map((c,ci)=>`<div class="cat"><h3>${esc(c[0])}</h3>${c[1].map((q,qi)=>{let id=ci+'-'+qi;return `<button class="cell ${used[id]?'used':''}" ${used[id]?'disabled':''} onclick="ask(${ci},${qi})">${used[id]?'✓':'$'+((qi+1)*100)}</button>`}).join('')}</div>`).join('')}
+function startGame(){if(!Object.keys(players).length){setHostStatus('Have at least one player join first.');return}started=true;broadcast({t:'start'});setHostStatus('Game started! Choose a category and point value.');}
+function ask(ci,qi){if(!started)return;let id=ci+'-'+qi;if(used[id])return;used[id]=true;current={...allQ.find(x=>x.cat===ci&&x.qi===qi),id};responses={};Object.values(players).forEach(p=>p.answers=null);renderBoard();document.getElementById('hostQuestion').classList.remove('hidden');document.getElementById('hqCat').textContent=cats[ci][0];document.getElementById('hqValue').textContent='$'+current.value;document.getElementById('hqText').textContent=current.q;document.getElementById('hqAnswers').innerHTML=current.a.map((a,i)=>`<button id="ha${i}" onclick="revealHost(${i})">${esc(a)}</button>`).join('');document.getElementById('responses').innerHTML='<div class="small">Waiting for answers...</div>';broadcast({t:'question',cat:cats[ci][0],value:current.value,q:current.q,a:current.a})}
+function revealHost(i){current.revealed=i;current.a.forEach((_,j)=>{let b=document.getElementById('ha'+j);if(b){b.classList.toggle('correct',j===current.correct);b.classList.toggle('wrong',j===i&&j!==current.correct)}});renderHostResponses()}
+function renderHostResponses(){let vals=Object.values(responses);document.getElementById('responses').innerHTML=vals.length?vals.map(r=>`<div class="player"><span>${esc(r.name)} — ${esc(current.a[r.answer])}</span><span>${r.correct?'✓':'✗'}</span></div>`).join(''):'<div class="small">Waiting for answers...</div>'}
+function closeQuestion(){document.getElementById('hostQuestion').classList.add('hidden');current=null;responses={};broadcast({t:'clear'})}
+function finishGame(){broadcast({t:'end',p:safePlayers()});showFinal(safePlayers())}
+function setHostStatus(t){document.getElementById('hostStatus').textContent=t}
+function joinGame(){room=document.getElementById('code').value.trim();let name=document.getElementById('name').value.trim()||'Player';if(room.length!==6){document.getElementById('joinStatus').textContent='Enter the 6-digit code.';return}show('playerGame');document.getElementById('pgStatus').textContent='Connecting...';peer=new Peer();peer.on('open',()=>{conn=peer.connect('pgc-big-'+room);conn.on('open',()=>{conn.send({t:'join',name});document.getElementById('pgStatus').textContent='Connected! Waiting for the host to start...'});conn.on('data',playerData)});peer.on('error',()=>document.getElementById('pgStatus').textContent='Could not connect. Check the game code.')}
+function playerData(d){if(d.t==='start')document.getElementById('pgStatus').textContent='Game started! Watch the board.';if(d.t==='question')renderPlayerQuestion(d);if(d.t==='clear'){document.getElementById('pgQuestion').textContent='Waiting for the next question...';document.getElementById('pgAnswers').innerHTML='';}if(d.t==='scores'){}if(d.t==='end')showFinal(d.p)}
+function renderPlayerQuestion(d){document.getElementById('pgCat').textContent=d.cat+' • $'+d.value;document.getElementById('pgProgress').textContent='Your answer earns the full point value if correct.';document.getElementById('pgQuestion').textContent=d.q;document.getElementById('pgAnswers').innerHTML=d.a.map((a,i)=>`<button onclick="sendAnswer(${i},this)">${esc(a)}</button>`).join('');document.getElementById('pgStatus').textContent='Choose your answer.'}
+function sendAnswer(i,b){if(!conn)return;Array.from(document.querySelectorAll('#pgAnswers button')).forEach(x=>x.disabled=true);b.style.outline='3px solid #f5c542';conn.send({t:'answer',i});document.getElementById('pgStatus').textContent='Answer submitted! Waiting for the next question...'}
+function showFinal(p){show('scores');let arr=Object.values(p).sort((a,b)=>b.score-a.score);document.getElementById('finalScores').innerHTML=arr.map((x,i)=>`<div class="player rank"><span>${i+1}. ${esc(x.name)}</span><span class="score">${x.score}</span></div>`).join('')||'<div class="small">No scores yet.</div>'}
+</script></body></html>
