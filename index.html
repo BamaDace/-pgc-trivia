@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PGC Trivia</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0f172a;color:#fff}
+.wrap{max-width:760px;margin:auto;padding:24px 16px 40px}.card{background:#1e293b;border-radius:22px;padding:22px;margin:14px 0}
+h1{font-size:38px;margin:8px 0}.sub{color:#cbd5e1}.logo{font-weight:800;color:#fbbf24}
+button,input{width:100%;padding:15px 16px;border-radius:14px;border:0;font-size:18px;margin-top:10px}
+button{background:#2563eb;color:#fff;font-weight:700;cursor:pointer}button.secondary{background:#475569}
+input{background:#f8fafc;color:#111827}.hidden{display:none}.code{font-size:42px;letter-spacing:8px;text-align:center;font-weight:900;color:#fbbf24;padding:15px}
+.q{font-size:25px;font-weight:800;line-height:1.25}.answers button{text-align:left;background:#334155}
+.answers button.selected{outline:4px solid #fbbf24}.notice{padding:12px;border-radius:12px;background:#172554;color:#bfdbfe;margin-top:10px}
+.player{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid #334155}
+.score{font-size:22px;font-weight:800}.small{font-size:14px;color:#94a3b8}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="logo">PLEASANT GROVE CHURCH</div>
+<h1>PGC Trivia 🎯</h1>
+<div class="sub">Bible • Church • Fun</div>
+
+<section id="home" class="card">
+<h2>Join or Host</h2>
+<button onclick="hostGame()">Host a Game</button>
+<button class="secondary" onclick="show('join')">Join a Game</button>
+</section>
+
+<section id="join" class="card hidden">
+<h2>Join Game</h2>
+<input id="code" maxlength="6" placeholder="Enter 6-digit room code" inputmode="numeric">
+<input id="name" maxlength="20" placeholder="Your name">
+<button onclick="joinGame()">Join</button>
+<button class="secondary" onclick="show('home')">Back</button>
+<p id="status" class="small"></p>
+</section>
+
+<section id="host" class="card hidden">
+<h2>Host Game</h2>
+<div id="room" class="code">------</div>
+<div class="notice">Give this 6-digit code to everyone playing.</div>
+<div id="players"></div>
+<button onclick="startGame()">Start Game</button>
+<button class="secondary" onclick="nextQuestion()">Next Question</button>
+<p id="hostStatus" class="small"></p>
+</section>
+
+<section id="game" class="card hidden">
+<div id="progress" class="small"></div>
+<div id="question" class="q"></div>
+<div id="answers" class="answers"></div>
+<div id="gameStatus" class="notice hidden"></div>
+</section>
+
+<section id="scores" class="card hidden">
+<h2>Leaderboard 🏆</h2>
+<div id="scoreList"></div>
+</section>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const Q=[
+["Who built the ark?",["Moses","Noah","David","Peter"],1],
+["Where was Jesus born?",["Nazareth","Jerusalem","Bethlehem","Capernaum"],2],
+["What is the first book of the Bible?",["Exodus","Genesis","Matthew","Psalms"],1],
+["Who defeated Goliath?",["Saul","David","Jonathan","Solomon"],1],
+["How many disciples did Jesus choose?",["7","10","12","40"],2],
+["Who was the mother of Jesus?",["Mary","Martha","Ruth","Elizabeth"],0],
+["What did Jesus turn water into?",["Oil","Wine","Bread","Milk"],1],
+["Who led Israel out of Egypt?",["Joshua","Moses","Aaron","Samuel"],1],
+["How many books are in the New Testament?",["27","39","66","12"],0],
+["What is the shortest verse in the Bible?",["Jesus wept.","God is love.","Pray always.","Rejoice always."],0]
+];
+
+let peer,conn,host=false,players={},room="",n=0,answered=false;
+
+function show(id){["home","join","host","game","scores"].forEach(x=>document.getElementById(x).classList.toggle("hidden",x!==id))}
+function code(){return Math.floor(100000+Math.random()*900000).toString()}
+function hostGame(){
+ host=true;room=code();show("host");document.getElementById("room").textContent=room;
+ peer=new Peer("pgc-"+room);
+ peer.on("open",()=>document.getElementById("hostStatus").textContent="Waiting for players...");
+ peer.on("connection",c=>{
+  c.on("open",()=>{players[c.peer]={name:"Player",score:0,c};renderPlayers();c.send({t:"welcome"})});
+  c.on("data",d=>{
+   if(d.t==="join"){players[c.peer].name=d.name;renderPlayers();send({t:"players",p:safe()})}
+   if(d.t==="answer"){if(d.i===Q[n][2])players[c.peer].score+=100;renderPlayers()}
+  });
+  c.on("close",()=>{delete players[c.peer];renderPlayers()})
+ });
+}
+function safe(){let x={};Object.keys(players).forEach(k=>x[k]={name:players[k].name,score:players[k].score});return x}
+function send(d){Object.values(players).forEach(p=>{try{p.c.send(d)}catch(e){}})}
+function renderPlayers(){
+ document.getElementById("players").innerHTML=Object.values(players).map(p=>`<div class="player"><span>${esc(p.name)}</span><span class="score">${p.score}</span></div>`).join("");
+}
+function startGame(){if(!Object.keys(players).length){document.getElementById("hostStatus").textContent="Have someone join first.";return}n=0;send({t:"q",n,q:Q[n]});document.getElementById("hostStatus").textContent="Question 1 of "+Q.length}
+function nextQuestion(){n++;if(n>=Q.length){send({t:"end",p:safe()});showScores(safe());return}send({t:"q",n,q:Q[n]});document.getElementById("hostStatus").textContent="Question "+(n+1)+" of "+Q.length}
+function joinGame(){
+ room=document.getElementById("code").value.trim();let name=document.getElementById("name").value.trim()||"Player";
+ if(room.length!==6){document.getElementById("status").textContent="Enter the 6-digit code.";return}
+ show("game");document.getElementById("status").textContent="Connecting...";
+ peer=new Peer();peer.on("open",()=>{conn=peer.connect("pgc-"+room);conn.on("open",()=>{conn.send({t:"join",name});document.getElementById("gameStatus").classList.remove("hidden");document.getElementById("gameStatus").textContent="Connected! Waiting for host..."}) ;conn.on("data",d=>{if(d.t==="q")renderQ(d.q,d.n);if(d.t==="end")showScores(d.p)})});
+ peer.on("error",()=>document.getElementById("gameStatus").textContent="Could not connect. Check the code.");
+}
+function renderQ(q,i){answered=false;document.getElementById("progress").textContent="Question "+(i+1)+" of "+Q.length;document.getElementById("question").textContent=q[0];document.getElementById("answers").innerHTML=q[1].map((a,j)=>`<button onclick="answer(${j},this)">${esc(a)}</button>`).join("")}
+function answer(i,b){if(answered)return;answered=true;b.classList.add("selected");conn.send({t:"answer",i});document.getElementById("gameStatus").classList.remove("hidden");document.getElementById("gameStatus").textContent="Answer submitted! Waiting..."}
+function showScores(p){show("scores");document.getElementById("scoreList").innerHTML=Object.values(p).sort((a,b)=>b.score-a.score).map((x,i)=>`<div class="player"><span>${i+1}. ${esc(x.name)}</span><span class="score">${x.score}</span></div>`).join("")}
+function esc(s){return String(s).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]))}
+</script>
+</body>
+</html>
