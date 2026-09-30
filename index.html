@@ -1,50 +1,936 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>PGC Trivia — Big Game</title>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PGC Trivia — The Big Game</title>
 <style>
-*{box-sizing:border-box}body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#0b1220;color:#fff}.wrap{max-width:1100px;margin:auto;padding:20px 14px 50px}.brand{text-align:center;color:#f5c542;font-weight:900;letter-spacing:1px}.tag{text-align:center;color:#aab5c7;margin-bottom:16px}h1{font-size:clamp(32px,7vw,58px);text-align:center;margin:5px 0}.card{background:#151f32;border:1px solid #26334a;border-radius:20px;padding:20px;margin:14px 0;box-shadow:0 10px 30px #0004}button,input{font:inherit}button{border:0;border-radius:13px;padding:14px 16px;background:#2857d9;color:#fff;font-weight:800;cursor:pointer;margin:5px 0}button.secondary{background:#35445e}.wide{width:100%}.hidden{display:none!important}.homeBtns{display:grid;grid-template-columns:1fr 1fr;gap:12px}.code{font-size:42px;letter-spacing:8px;font-weight:900;text-align:center;color:#f5c542;margin:8px}.notice{background:#1c2c4c;border-radius:12px;padding:12px;color:#dbe7ff;margin:10px 0}.players{display:grid;gap:7px}.player{display:flex;justify-content:space-between;gap:10px;padding:10px 12px;background:#1c283c;border-radius:10px}.score{font-weight:900;color:#f5c542}.board{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.cat{background:#21314d;border-radius:12px;overflow:hidden}.cat h3{font-size:15px;text-align:center;margin:0;padding:10px 5px;min-height:58px;display:flex;align-items:center;justify-content:center}.cell{width:100%;border-radius:0;background:#254e96;color:#f5c542;font-size:22px}.cell.used{background:#263044;color:#68748a}.cell:disabled{opacity:1}.hostQ{border:2px solid #f5c542}.hostQ .bigq{font-size:26px;font-weight:900;line-height:1.25}.answers{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:14px}.answers button{text-align:left;background:#293852}.answers button.correct{outline:3px solid #4ade80}.answers button.wrong{outline:3px solid #f87171}.status{font-size:14px;color:#aab5c7}.leader{display:grid;gap:8px}.rank{font-size:20px}.small{font-size:13px;color:#93a1b7}input{width:100%;padding:14px;border-radius:12px;border:0;margin:6px 0;background:#f7f8fa;color:#111}.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:14px;z-index:10}.modal .card{max-width:700px;width:100%;max-height:90vh;overflow:auto}@media(max-width:700px){.board{grid-template-columns:repeat(2,1fr)}.homeBtns,.answers{grid-template-columns:1fr}.cat h3{min-height:48px}.cell{font-size:19px}}
-</style></head><body><div class="wrap">
-<div class="brand">PLEASANT GROVE CHURCH</div><h1>PGC Trivia 🎯</h1><div class="tag">The Big Game • 11 Categories • 55 Questions</div>
-<section id="home" class="card"><h2>Welcome!</h2><div class="homeBtns"><button onclick="hostGame()">🎤 Host a Game</button><button class="secondary" onclick="show('join')">📱 Join a Game</button></div><p class="small">Players only need this webpage and the 6-digit game code. No GitHub account required.</p></section>
-<section id="join" class="card hidden"><h2>Join a Game</h2><input id="code" maxlength="6" placeholder="6-digit game code" inputmode="numeric"><input id="name" maxlength="20" placeholder="Your name"><button class="wide" onclick="joinGame()">Join Game</button><button class="secondary wide" onclick="show('home')">Back</button><p id="joinStatus" class="status"></p></section>
-<section id="host" class="hidden"><div class="card"><h2>Host Controls</h2><div class="notice">Game Code</div><div id="room" class="code">------</div><p class="status">Players open this same website, tap Join a Game, and enter the code.</p><div id="hostPlayers" class="players"></div><button class="wide" onclick="startGame()">▶️ Start Game</button><button class="secondary wide" onclick="finishGame()">🏆 Finish Game</button><p id="hostStatus" class="status"></p></div><div class="card"><h2>Choose a Question</h2><div id="board" class="board"></div></div><div id="hostQuestion" class="card hostQ hidden"><div id="hqCat" class="small"></div><div id="hqValue" class="score"></div><div id="hqText" class="bigq"></div><div id="hqAnswers" class="answers"></div><div id="responses" class="players"></div><button class="wide" onclick="closeQuestion()">Return to Board</button></div></section>
-<section id="playerGame" class="card hidden"><div id="pgProgress" class="small"></div><h2 id="pgCat"></h2><div id="pgQuestion" style="font-size:27px;font-weight:900;line-height:1.25"></div><div id="pgAnswers" class="answers"></div><div id="pgStatus" class="notice">Waiting for the host...</div></section>
-<section id="scores" class="card hidden"><h2>🏆 Final Leaderboard</h2><div id="finalScores" class="leader"></div><button class="wide" onclick="location.reload()">Play Again</button></section>
-</div><div id="modal" class="modal hidden"><div class="card"><h2 id="modalTitle"></h2><p id="modalText"></p><button class="wide" onclick="document.getElementById('modal').classList.add('hidden')">OK</button></div></div>
-<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script><script>
-const cats=[
-['U.S. History',[['Who was the first U.S. president?',['George Washington','Thomas Jefferson','Abraham Lincoln','John Adams'],0],['In what year was the Declaration of Independence adopted?',['1776','1781','1789','1801'],0],['Which U.S. state was the last to join the Union?',['Alaska','Hawaii','Arizona','Oklahoma'],1],['Who was president during most of the Civil War?',['Ulysses S. Grant','Andrew Johnson','Abraham Lincoln','James Buchanan'],2],['What purchase doubled the size of the United States in 1803?',['Alaska Purchase','Louisiana Purchase','Florida Purchase','Gadsden Purchase'],1]]],
-['Sports',[['How many points is a touchdown worth before any extra point?',['3','6','7','8'],1],['Which sport uses a puck?',['Soccer','Hockey','Tennis','Golf'],1],['How many players are on the field for one baseball team at a time?',['7','8','9','10'],2],['In golf, what is one stroke under par called?',['Eagle','Birdie','Bogey','Albatross'],1],['Which team has won the most Super Bowls through the 2025 season?',['Dallas Cowboys','Green Bay Packers','Pittsburgh Steelers','New England Patriots'],2]]],
-['Modern Music',[['Which singer released the album "1989"?',['Taylor Swift','Adele','Lady Gaga','Beyoncé'],0],['Which artist is known for the hit "Uptown Funk" with Mark Ronson?',['Bruno Mars','Ed Sheeran','Justin Timberlake','Usher'],0],['What instrument has 88 standard keys?',['Guitar','Violin','Piano','Trumpet'],2],['Which group recorded "I Want It That Way"?',['NSYNC','Backstreet Boys','Boyz II Men','Maroon 5'],1],['Which singer released "Rolling in the Deep"?',['Adele','Pink','Katy Perry','Rihanna'],0]]],
-['Geography',[['What is the largest ocean?',['Atlantic','Indian','Pacific','Arctic'],2],['What country is home to the Great Pyramid of Giza?',['Mexico','Egypt','Greece','Jordan'],1],['What is the capital of Canada?',['Toronto','Vancouver','Montreal','Ottawa'],3],['Which U.S. state is the largest by area?',['Texas','California','Alaska','Montana'],2],['Mount Everest is part of which mountain range?',['Andes','Rockies','Alps','Himalayas'],3]]],
-['Anatomy',[['What is the largest organ of the human body?',['Heart','Skin','Liver','Lung'],1],['How many chambers does the human heart have?',['2','3','4','5'],2],['Which bone is the longest in the body?',['Femur','Tibia','Humerus','Radius'],0],['What organ pumps blood through the body?',['Liver','Heart','Kidney','Pancreas'],1],['What part of the brain controls balance and coordination?',['Cerebellum','Brain stem','Frontal lobe','Hypothalamus'],0]]],
-['Bible',[['Who built the ark?',['Moses','Noah','David','Peter'],1],['Where was Jesus born?',['Nazareth','Jerusalem','Bethlehem','Capernaum'],2],['Who defeated Goliath?',['Saul','David','Jonathan','Solomon'],1],['How many disciples did Jesus choose?',['7','10','12','40'],2],['What is the first book of the Bible?',['Exodus','Genesis','Matthew','Psalms'],1]]],
-['Pop Culture',[['What fictional city is Batman associated with?',['Metropolis','Gotham City','Star City','Central City'],1],['Which movie features the character Jack Sparrow?',['The Matrix','Pirates of the Caribbean','Indiana Jones','Jurassic Park'],1],['What TV show features the coffee shop Central Perk?',['Friends','Seinfeld','Cheers','The Office'],0],['What is the name of the snowman in Frozen?',['Sven','Olaf','Kristoff','Hans'],1],['Which superhero is known as the Man of Steel?',['Batman','Iron Man','Superman','Thor'],2]]],
-['Literature',[['Who wrote Romeo and Juliet?',['William Shakespeare','Mark Twain','Charles Dickens','Jane Austen'],0],['What is the name of Sherlock Holmes’s friend?',['Watson','Baggins','Darcy','Hastings'],0],['Who wrote The Hobbit?',['C.S. Lewis','J.R.R. Tolkien','George Orwell','Ernest Hemingway'],1],['Which novel begins with the character Scout Finch?',['To Kill a Mockingbird','The Great Gatsby','Little Women','The Hobbit'],0],['Who wrote The Adventures of Tom Sawyer?',['Mark Twain','Stephen King','Jules Verne','Herman Melville'],0]]],
-['Space',[['What planet is known as the Red Planet?',['Venus','Mars','Jupiter','Mercury'],1],['What is the name of our galaxy?',['Andromeda','Milky Way','Whirlpool','Sombrero'],1],['How many planets are in our solar system?',['7','8','9','10'],1],['Which planet is the largest?',['Earth','Saturn','Jupiter','Neptune'],2],['What was the first human-made object to land on the Moon?',['Apollo 11','Luna 2','Sputnik 1','Voyager 1'],1]]],
-['Science',[['What gas do plants absorb from the atmosphere?',['Oxygen','Nitrogen','Carbon dioxide','Hydrogen'],2],['What is H2O commonly called?',['Salt','Water','Hydrogen peroxide','Oxygen'],1],['What force keeps us on the ground?',['Magnetism','Gravity','Friction','Pressure'],1],['How many bones are in the typical adult human body?',['106','206','306','406'],1],['What is the center of an atom called?',['Electron','Nucleus','Proton','Ion'],1]]],
-['Toys & Games',[['Which toy is made from interlocking plastic bricks?',['LEGO','Slinky','Etch A Sketch','Play-Doh'],0],['What toy has a metal coil that can walk down stairs?',['Yo-yo','Slinky','Rubik’s Cube','Frisbee'],1],['How many colored faces does a standard Rubik’s Cube have?',['4','5','6','8'],2],['Which board game includes Boardwalk and Park Place?',['Clue','Monopoly','Risk','Sorry!'],1],['What toy lets you draw by turning two knobs?',['Etch A Sketch','Easy-Bake Oven','View-Master','Hot Wheels'],0]]]
-];
-let peer=null,conn=null,room='',isHost=false,players={},started=false,used={},current=null,responses={};
-const allQ=[];cats.forEach((c,ci)=>c[1].forEach((q,qi)=>allQ.push({cat:ci,qi,value:(qi+1)*100,q:q[0],a:q[1],correct:q[2]})));
-function show(id){['home','join','host','playerGame','scores'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id))}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:#080f1d;color:#fff}
+.wrap{max-width:1050px;margin:auto;padding:18px 14px 55px}
+.brand{text-align:center;color:#f5c542;font-weight:900;letter-spacing:1.4px}
+h1{font-size:clamp(34px,7vw,62px);text-align:center;margin:4px 0}
+.tag{text-align:center;color:#aab5c7;margin-bottom:18px}
+.card{background:#141f33;border:1px solid #293750;border-radius:20px;padding:20px;margin:14px 0;box-shadow:0 12px 32px #0005}
+h2{margin-top:0}
+button,input{font:inherit}
+button{border:0;border-radius:13px;padding:14px 16px;background:#2d5bdd;color:#fff;font-weight:850;cursor:pointer;margin:5px 0}
+button.secondary{background:#394964}
+button.danger{background:#7f2934}
+button:disabled{opacity:.55;cursor:default}
+.wide{width:100%}
+.hidden{display:none!important}
+.homeBtns{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.code{font-size:44px;letter-spacing:9px;font-weight:950;text-align:center;color:#f5c542;margin:10px}
+.notice{background:#1d2d4c;border-radius:12px;padding:13px;color:#dce7ff;margin:10px 0}
+.small,.status{font-size:14px;color:#9eacc1}
+.players{display:grid;gap:7px}
+.player{display:flex;justify-content:space-between;gap:12px;padding:11px 13px;background:#1b283e;border-radius:10px}
+.score{font-weight:950;color:#f5c542}
+.pill{display:inline-block;padding:6px 10px;border-radius:999px;background:#26395d;color:#dce7ff;font-size:13px;font-weight:800}
+.round{font-size:22px;font-weight:950;color:#f5c542}
+.question{font-size:27px;font-weight:950;line-height:1.28;margin:12px 0 16px}
+.answers{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.answers button{text-align:left;background:#293952;min-height:58px}
+.answers button.correct{outline:3px solid #4ade80;background:#214a37}
+.answers button.wrong{outline:3px solid #f87171;background:#542a32}
+.hostQuestion{border:2px solid #f5c542}
+.answerGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.controlRow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.boardItem{background:#21314d;border-radius:11px;padding:12px;text-align:center}
+.leader{display:grid;gap:8px}
+.rank{font-size:21px}
+.wager{font-size:22px;font-weight:900}
+input{width:100%;padding:14px;border-radius:12px;border:0;margin:6px 0;background:#f7f8fa;color:#111}
+.modal{position:fixed;inset:0;background:#000c;display:flex;align-items:center;justify-content:center;padding:15px;z-index:20}
+.modal .card{max-width:650px;width:100%;max-height:90vh;overflow:auto}
+.finalBox{border:2px solid #f5c542;background:#17233a}
+.timer{display:inline-flex;align-items:center;justify-content:center;min-width:92px;padding:7px 14px;border-radius:999px;background:#26395d;color:#fff;font-size:22px;font-weight:950;margin:8px 0}.timer.warning{background:#7f2934;animation:pulse .8s infinite}@keyframes pulse{50%{transform:scale(1.04)}}
+.categoryTools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.mini{padding:9px 13px;font-size:14px;border-radius:10px}.categoryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:10px}.categoryBtn{background:#26395d;color:#fff;border:2px solid transparent;border-radius:14px;padding:14px 10px;font-weight:850;cursor:pointer;text-align:left}.categoryBtn.selected{border-color:#f5c542;background:#304c80}.categoryBtn .check{float:right;font-size:18px}.categoryBtn .catCount{display:block;font-size:11px;opacity:.75;margin-top:4px;font-weight:600}.categorySummary{font-weight:800}@media(max-width:700px){
+ .categoryGrid{grid-template-columns:repeat(2,1fr)}
+ .homeBtns,.answers,.answerGrid,.controlRow{grid-template-columns:1fr}
+ .board{grid-template-columns:repeat(2,1fr)}
+ .question{font-size:23px}
+ .code{font-size:38px}
+}
+
+/* ===== PGC TRIVIA: THE BIG GAME — VISUAL UPGRADE ===== */
+:root{
+ --navy:#050b18;--navy2:#0b1630;--panel:#101d35;--panel2:#172743;
+ --blue:#2f6bff;--blue2:#5da8ff;--gold:#f5c542;--gold2:#ffe38a;
+ --green:#23d46b;--red:#ff4d62;--muted:#aebbd0;--line:#2b4168;
+}
+html{background:var(--navy)}
+body{
+ background:
+ radial-gradient(circle at 50% -10%,rgba(53,117,255,.32),transparent 34%),
+ radial-gradient(circle at 0% 35%,rgba(20,65,160,.20),transparent 28%),
+ radial-gradient(circle at 100% 55%,rgba(245,197,66,.09),transparent 25%),
+ linear-gradient(180deg,#030817 0%,#071126 48%,#030817 100%);
+ min-height:100vh;overflow-x:hidden;
+}
+body:before,body:after{content:"";position:fixed;z-index:-1;pointer-events:none;border-radius:50%;filter:blur(70px);opacity:.28}
+body:before{width:260px;height:260px;background:#2463ff;top:8%;left:-120px}
+body:after{width:220px;height:220px;background:#f5c542;bottom:4%;right:-100px}
+.wrap{max-width:1180px;padding:24px 18px 70px}
+.brand{font-size:13px;letter-spacing:4px;text-shadow:0 0 18px rgba(245,197,66,.5);margin-top:2px}
+h1{font-size:clamp(42px,8vw,76px);letter-spacing:-2px;margin:0 0 2px;text-shadow:0 5px 22px rgba(0,0,0,.6),0 0 24px rgba(47,107,255,.18)}
+.tag{font-size:15px;font-weight:900;letter-spacing:2px;color:#c5d2e7;margin:0 0 22px;text-transform:uppercase}
+.card{
+ background:linear-gradient(145deg,rgba(19,34,60,.96),rgba(7,17,35,.96));
+ border:1px solid rgba(91,128,186,.42);border-radius:24px;padding:24px;margin:16px 0;
+ box-shadow:0 18px 55px rgba(0,0,0,.40),inset 0 1px rgba(255,255,255,.05);
+ position:relative;overflow:hidden;
+}
+.card:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.035),transparent 35%,rgba(47,107,255,.025));pointer-events:none}
+h2{font-size:clamp(24px,4vw,34px);letter-spacing:-.5px;margin:0 0 12px}
+button{
+ border:1px solid rgba(255,255,255,.09);border-radius:15px;padding:15px 18px;
+ background:linear-gradient(135deg,#2e62e9,#3c7aff);color:#fff;font-weight:900;cursor:pointer;
+ margin:5px 0;box-shadow:0 8px 20px rgba(18,62,170,.28),inset 0 1px rgba(255,255,255,.18);
+ transition:transform .16s ease,filter .16s ease,box-shadow .16s ease;
+}
+button:hover{filter:brightness(1.08);transform:translateY(-2px);box-shadow:0 12px 28px rgba(18,62,170,.36),inset 0 1px rgba(255,255,255,.22)}
+button:active{transform:translateY(0) scale(.99)}
+button.secondary{background:linear-gradient(135deg,#263956,#405474);box-shadow:0 8px 18px rgba(0,0,0,.22)}
+button.danger{background:linear-gradient(135deg,#8c2639,#c43a4c)}
+.homeBtns button:first-child{background:linear-gradient(135deg,#159b50,#29df72);box-shadow:0 10px 30px rgba(35,212,107,.23)}
+.homeBtns button:last-child{background:linear-gradient(135deg,#1f62ef,#4096ff);box-shadow:0 10px 30px rgba(47,107,255,.26)}
+.categoryTools{margin-top:18px}.mini{padding:10px 15px;font-size:14px}
+.categoryGrid{grid-template-columns:repeat(4,1fr);gap:12px}
+.categoryBtn{
+ min-height:82px;background:linear-gradient(145deg,#1a2b4b,#111f38);border:1px solid #36517b;
+ padding:15px;border-radius:16px;text-align:left;position:relative;overflow:hidden;
+ box-shadow:0 7px 16px rgba(0,0,0,.18);transition:.16s ease;
+}
+.categoryBtn:before{content:"";position:absolute;inset:0;background:linear-gradient(120deg,rgba(255,255,255,.05),transparent 55%);pointer-events:none}
+.categoryBtn:hover{transform:translateY(-2px);border-color:#6799ed}
+.categoryBtn.selected{border:2px solid var(--gold);background:linear-gradient(145deg,#263d67,#172949);box-shadow:0 0 0 2px rgba(245,197,66,.08),0 10px 25px rgba(0,0,0,.25)}
+.categoryBtn .check{color:var(--gold);text-shadow:0 0 10px rgba(245,197,66,.7)}
+.categoryBtn .catCount{color:#b8c9e3}
+.notice{background:linear-gradient(135deg,rgba(35,59,96,.92),rgba(16,31,55,.92));border:1px solid rgba(86,120,176,.35);box-shadow:inset 0 1px rgba(255,255,255,.04)}
+.code{font-size:clamp(48px,9vw,72px);letter-spacing:12px;color:var(--gold2);text-shadow:0 0 28px rgba(245,197,66,.36);padding:8px 0}
+.player{background:linear-gradient(135deg,#1a2b49,#122039);border:1px solid #2f466c;border-radius:14px;box-shadow:0 5px 14px rgba(0,0,0,.18)}
+.score{color:var(--gold2)}
+.pill{background:#20365b;border:1px solid #385987;box-shadow:inset 0 1px rgba(255,255,255,.05)}
+.round{color:var(--gold2);letter-spacing:1px;text-shadow:0 0 14px rgba(245,197,66,.18)}
+.question{font-size:clamp(27px,4vw,40px);line-height:1.2;letter-spacing:-.4px;text-shadow:0 3px 15px rgba(0,0,0,.3)}
+.hostQuestion{border:1px solid rgba(245,197,66,.75);box-shadow:0 0 0 1px rgba(245,197,66,.08),0 18px 55px rgba(0,0,0,.4)}
+.answers{gap:14px}
+.answers button{
+ min-height:78px;text-align:left;padding:18px 20px;background:linear-gradient(145deg,#223758,#172945);
+ border:1px solid #3b5880;font-size:18px;box-shadow:0 8px 18px rgba(0,0,0,.22);position:relative;overflow:hidden;
+}
+.answers button:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:#4d88ff;opacity:.7}
+.answers button.correct{outline:3px solid var(--green);background:linear-gradient(145deg,#174d36,#123827);box-shadow:0 0 28px rgba(35,212,107,.18)}
+.answers button.wrong{outline:3px solid var(--red);background:linear-gradient(145deg,#542834,#351a22);box-shadow:0 0 28px rgba(255,77,98,.16)}
+.timer{min-width:112px;padding:10px 18px;background:linear-gradient(135deg,#243b64,#172945);border:1px solid #42669b;box-shadow:0 8px 20px rgba(0,0,0,.22);font-size:24px}
+.timer.warning{background:linear-gradient(135deg,#8d2639,#bd3c50);box-shadow:0 0 25px rgba(255,77,98,.25)}
+.board{gap:12px}.boardItem{background:linear-gradient(145deg,#1c3153,#13223c);border:1px solid #2d466c;box-shadow:0 7px 15px rgba(0,0,0,.2)}
+.finalBox{border:1px solid rgba(245,197,66,.8);background:radial-gradient(circle at 50% 0,rgba(245,197,66,.13),transparent 35%),linear-gradient(145deg,#182743,#0d1930);box-shadow:0 0 35px rgba(245,197,66,.08),0 20px 60px rgba(0,0,0,.42)}
+.finalBox .round{font-size:28px}
+input{background:#f7f9fc;border:2px solid transparent;box-shadow:0 7px 18px rgba(0,0,0,.2)}
+input:focus{outline:none;border-color:#4d88ff;box-shadow:0 0 0 4px rgba(77,136,255,.16)}
+#scores{background:radial-gradient(circle at 50% 0,rgba(245,197,66,.12),transparent 40%),linear-gradient(145deg,#162845,#091426)}
+#scores h2{text-align:center;font-size:36px;color:var(--gold2)}
+#finalScores .player{padding:16px 18px;font-size:18px}
+#hostIntermission{background:radial-gradient(circle at 50% 0,rgba(47,107,255,.2),transparent 45%),linear-gradient(145deg,#142743,#0b172b);text-align:center;padding:35px}
+#hostIntermission .round{font-size:34px}
+#hostIntermission h2{font-size:32px}
+#hostMainControls .wide{font-size:18px;padding:17px}
+#historyStatus{font-size:13px}
+.modal{backdrop-filter:blur(8px);background:rgba(0,5,15,.76)}
+.modal .card{border-color:#496896}
+@media(max-width:900px){.categoryGrid{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:700px){.categoryGrid{grid-template-columns:repeat(2,1fr)}.wrap{padding:18px 12px 55px}.card{padding:18px}.answers button{min-height:68px;font-size:16px}.question{font-size:25px}.code{letter-spacing:8px}}
+@media(min-width:1100px){.categoryGrid{grid-template-columns:repeat(4,1fr)}}
+
+
+/* ===== NEXT-LEVEL GAME-SHOW SCREENS ===== */
+:root{--cyan:#55c8ff;--purple:#8b5cf6;--gold3:#fff0a8}
+@keyframes screenIn{from{opacity:0;transform:translateY(12px) scale(.985)}to{opacity:1;transform:none}}
+@keyframes glowPulse{0%,100%{box-shadow:0 0 0 rgba(85,200,255,0)}50%{box-shadow:0 0 34px rgba(85,200,255,.13)}}
+@keyframes goldPulse{0%,100%{filter:brightness(1)}50%{filter:brightness(1.18)}}
+@keyframes shimmer{0%{transform:translateX(-120%)}100%{transform:translateX(120%)}}
+section:not(.hidden){animation:screenIn .42s ease both}
+#host .card,#playerGame,#scores{backdrop-filter:blur(10px)}
+#host> .card:first-child{background:radial-gradient(circle at 50% 0,rgba(47,107,255,.18),transparent 38%),linear-gradient(145deg,rgba(20,39,72,.98),rgba(6,15,30,.98));border-color:#3b5c8f}
+#host> .card:first-child h2{font-size:30px}
+#host> .card:first-child .notice:first-of-type{background:linear-gradient(90deg,#162b50,#203d69);text-align:center;text-transform:uppercase;letter-spacing:2px;font-size:13px;font-weight:900;color:#bcd1f0}
+#hostQuestionCard{background:radial-gradient(circle at 50% -10%,rgba(47,107,255,.24),transparent 40%),linear-gradient(145deg,#142846,#071224);overflow:hidden}
+#hostQuestionCard:after,#playerGame:after,#hostFinal:after,#scores:after{content:"";position:absolute;top:0;left:-35%;width:25%;height:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);animation:shimmer 4.5s linear infinite;opacity:.8}
+#hostQuestionCard,#playerGame,#hostFinal,#scores{position:relative;overflow:hidden}
+#hqProgress,#pgProgress{font-weight:800;letter-spacing:.4px;color:#a9c1e2}
+#hqText,#pgQuestion{background:linear-gradient(180deg,#fff,#dce8ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+#hqAnswers button,#pgAnswers button{font-size:18px;font-weight:900;min-height:86px;padding:18px 54px 18px 20px;border-radius:18px;background:linear-gradient(145deg,#21395f,#142744);border:1px solid #42618e}
+#hqAnswers button:after,#pgAnswers button:after{position:absolute;right:18px;top:50%;transform:translateY(-50%);width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:950;color:#d9e6fb;background:#2c4770;border:1px solid #5577a7}
+#hqAnswers button:nth-child(1):after,#pgAnswers button:nth-child(1):after{content:"A"}
+#hqAnswers button:nth-child(2):after,#pgAnswers button:nth-child(2):after{content:"B"}
+#hqAnswers button:nth-child(3):after,#pgAnswers button:nth-child(3):after{content:"C"}
+#hqAnswers button:nth-child(4):after,#pgAnswers button:nth-child(4):after{content:"D"}
+#hqAnswers button:hover,#pgAnswers button:hover{transform:translateY(-3px);border-color:#74a8ff;background:linear-gradient(145deg,#29466f,#172d4e)}
+#hostTimer,#playerTimer,#finalTimer{font-size:30px;min-width:132px;padding:11px 20px;border:2px solid rgba(245,197,66,.5);background:radial-gradient(circle at 50% 35%,#315183,#162844);color:#fff3b0;animation:glowPulse 2.2s infinite}
+#hostTimer.warning,#playerTimer.warning,#finalTimer.warning{color:#fff;background:linear-gradient(135deg,#a11f38,#ed3f58);border-color:#ff8090;animation:goldPulse .65s infinite}
+#hostIntermission{min-height:330px;display:flex;flex-direction:column;justify-content:center;align-items:center;background:radial-gradient(circle at 50% 35%,rgba(47,107,255,.28),transparent 42%),radial-gradient(circle at 50% 100%,rgba(245,197,66,.08),transparent 35%),linear-gradient(145deg,#10284b,#050d1d);border:1px solid #466899}
+#hostIntermission .round{font-size:16px;letter-spacing:4px;text-transform:uppercase;color:#7dcfff}
+#hostIntermission h2{font-size:clamp(34px,6vw,58px);text-align:center;color:#fff;text-shadow:0 0 25px rgba(85,200,255,.25)}
+#intermissionScores{max-width:760px;text-align:center;font-size:16px}
+#intermissionBtn{max-width:520px;width:100%;font-size:20px;padding:18px;background:linear-gradient(135deg,#f1b52e,#ffe37c);color:#101827;box-shadow:0 12px 30px rgba(245,197,66,.25)}
+#hostFinal{min-height:430px;text-align:center;background:radial-gradient(circle at 50% 0,rgba(245,197,66,.2),transparent 38%),radial-gradient(circle at 50% 100%,rgba(139,92,246,.13),transparent 45%),linear-gradient(145deg,#1b2948,#080f20)}
+#hostFinal .round{font-size:16px;letter-spacing:4px;color:#ffe58b}
+#hostFinal h2{font-size:clamp(30px,5vw,48px);text-shadow:0 0 25px rgba(245,197,66,.22)}
+#finalQuestionText{max-width:900px;margin:20px auto;font-size:clamp(27px,4vw,42px)}
+#finalResponses{max-width:760px;margin:0 auto 12px;text-align:left}
+#playerGame{min-height:560px;background:radial-gradient(circle at 50% 0,rgba(47,107,255,.22),transparent 38%),linear-gradient(145deg,#132746,#071225);border:1px solid #456896;box-shadow:0 25px 70px rgba(0,0,0,.45)}
+#playerGame #pgRound{font-size:18px;letter-spacing:3px;text-transform:uppercase;color:#73cfff}
+#playerGame #pgCat{display:inline-block;padding:7px 13px;border-radius:999px;background:#1e3559;border:1px solid #42618f;color:#d6e5fb;font-size:14px}
+#pgStatus{border:1px solid #39567f;background:linear-gradient(135deg,#162b4c,#0f1e35);font-weight:800;text-align:center}
+#pgWagerBox{max-width:720px;margin:15px auto}
+#wagerInput{font-size:24px;text-align:center;font-weight:900}
+#submitWagerBtn{font-size:19px;background:linear-gradient(135deg,#e4aa28,#ffe17b);color:#101827;box-shadow:0 12px 28px rgba(245,197,66,.2)}
+#scores{min-height:520px;text-align:center;background:radial-gradient(circle at 50% 0,rgba(245,197,66,.2),transparent 38%),linear-gradient(145deg,#172946,#070f20);border-color:rgba(245,197,66,.45)}
+#scores h2{font-size:clamp(34px,6vw,56px);text-shadow:0 0 28px rgba(245,197,66,.3)}
+#finalScores{max-width:760px;margin:25px auto}
+#finalScores .player{min-height:68px;align-items:center;background:linear-gradient(90deg,#172d4f,#203b63,#172d4f);border:1px solid #456895;border-radius:16px;box-shadow:0 8px 22px rgba(0,0,0,.22)}
+#finalScores .player:nth-child(1){border:2px solid var(--gold);background:linear-gradient(90deg,#493a17,#253c61,#493a17);transform:scale(1.02);box-shadow:0 0 30px rgba(245,197,66,.13)}
+#finalScores .player:nth-child(1) .rank{color:#ffe27a}
+#finalScores .player:nth-child(2){border-color:#9bb2ce}
+#finalScores .player:nth-child(3){border-color:#b57c58}
+#scores button{max-width:620px;font-size:18px}
+#progressBoard{grid-template-columns:repeat(4,1fr)}
+#progressBoard .boardItem{min-height:74px;display:flex;align-items:center;justify-content:center;font-size:15px}
+.modal .card{background:radial-gradient(circle at 50% 0,rgba(47,107,255,.2),transparent 45%),linear-gradient(145deg,#172946,#081225);border-color:#5275a8}
+@media(max-width:700px){#hqAnswers button,#pgAnswers button{min-height:76px;padding-right:50px;font-size:16px}#hostIntermission{min-height:300px}#hostFinal{min-height:390px}#progressBoard{grid-template-columns:1fr 1fr}}
+
+/* ===== MATCH THE PGC TRIVIA SHOWCASE LOOK ===== */
+body{
+ background:
+ radial-gradient(circle at 50% -4%,rgba(255,194,61,.20),transparent 16%),
+ radial-gradient(circle at 50% 18%,rgba(30,102,255,.32),transparent 34%),
+ linear-gradient(115deg,rgba(0,101,255,.18),transparent 20%,transparent 80%,rgba(0,101,255,.18)),
+ linear-gradient(180deg,#020815 0%,#07152d 48%,#020815 100%);
+}
+.wrap{max-width:1240px;padding:20px 24px 52px}
+.brand{font-size:14px;letter-spacing:5px;color:#ffe27a;margin-top:4px;text-shadow:0 0 18px rgba(255,214,91,.5)}
+h1{font-size:clamp(54px,8vw,92px);font-weight:1000;letter-spacing:-3px;margin:0;line-height:.98;text-shadow:0 7px 0 rgba(5,11,24,.85),0 0 32px rgba(255,255,255,.08)}
+.tag{font-size:17px;letter-spacing:3px;color:#d7e4fa;margin:12px 0 22px}
+#home{
+ padding:28px 30px 0;
+ border:2px solid rgba(83,126,206,.55);
+ border-radius:28px;
+ background:linear-gradient(145deg,rgba(11,26,52,.98),rgba(3,12,27,.97));
+ box-shadow:0 0 0 1px rgba(255,210,70,.08),0 25px 70px rgba(0,0,0,.55),0 0 70px rgba(30,104,255,.13);
+}
+#home h2{font-size:38px;margin-bottom:8px}
+#home>.status{font-size:18px;color:#c4d2e8}
+.categoryTools{justify-content:flex-end;margin-top:-42px;position:relative;z-index:2}
+.categoryTools .mini{font-size:17px;padding:14px 22px;border-radius:15px}
+.categoryTools .mini:first-child{background:linear-gradient(135deg,#2268f5,#4a91ff);box-shadow:0 10px 28px rgba(47,107,255,.25)}
+.categoryGrid{grid-template-columns:repeat(5,1fr);gap:13px;margin-top:22px}
+.categoryBtn{min-height:88px;padding:18px 16px;font-size:18px;border:2px solid rgba(76,115,176,.55);border-radius:18px;background:linear-gradient(145deg,#142b51,#0d1e3b);box-shadow:0 8px 22px rgba(0,0,0,.28);transition:transform .15s,box-shadow .15s,border-color .15s}
+.categoryBtn:hover{transform:translateY(-3px);box-shadow:0 14px 28px rgba(0,0,0,.35)}
+.categoryBtn.selected{border-color:#ffd54a;background:linear-gradient(145deg,#1c355f,#102443);box-shadow:0 0 0 1px rgba(255,213,74,.12),0 10px 26px rgba(0,0,0,.28)}
+.categoryBtn .check{font-size:22px;color:#ffd54a}
+/* individual category accents */
+.categoryBtn:nth-child(1){border-color:#e8bd39;background:linear-gradient(145deg,#3b3013,#18233c)}
+.categoryBtn:nth-child(2){border-color:#4bdc4b;background:linear-gradient(145deg,#143b24,#102642)}
+.categoryBtn:nth-child(3){border-color:#ef3948;background:linear-gradient(145deg,#3d1621,#15243f)}
+.categoryBtn:nth-child(4){border-color:#3c8dff;background:linear-gradient(145deg,#122c59,#102443)}
+.categoryBtn:nth-child(5){border-color:#31a6ff;background:linear-gradient(145deg,#103554,#102443)}
+.categoryBtn:nth-child(6){border-color:#b54cff;background:linear-gradient(145deg,#281548,#132444)}
+.categoryBtn:nth-child(7){border-color:#ff8b21;background:linear-gradient(145deg,#3b2412,#18243e)}
+.categoryBtn:nth-child(8){border-color:#f04bbf;background:linear-gradient(145deg,#40152f,#192342)}
+.categoryBtn:nth-child(9){border-color:#ffe329;background:linear-gradient(145deg,#403a13,#19243f)}
+.categoryBtn:nth-child(10){border-color:#48e33e;background:linear-gradient(145deg,#153b21,#152542)}
+.categoryBtn:nth-child(11){border-color:#1ed9ff;background:linear-gradient(145deg,#103c4d,#122541)}
+.categoryBtn:nth-child(12){border-color:#ef54aa;background:linear-gradient(145deg,#3e1633,#172441)}
+.categoryBtn:nth-child(13){border-color:#ff782b;background:linear-gradient(145deg,#3c2115,#17243f)}
+.categoryStatus{font-size:16px}
+#categoryStatus{background:linear-gradient(135deg,#182e52,#102342);border:1px solid #385986;border-radius:15px;padding:14px 18px}
+.homeBtns{gap:18px;margin-top:18px}
+.homeBtns button{min-height:86px;text-align:left;position:relative;padding:14px 60px 14px 26px;border-radius:20px;font-size:24px;box-shadow:0 12px 30px rgba(0,0,0,.3)}
+.homeBtns button span{display:block;font-size:27px}
+.homeBtns button small{display:block;font-size:15px;font-weight:650;opacity:.92;margin-top:3px}
+.homeBtns button b{position:absolute;right:25px;top:50%;transform:translateY(-50%);font-size:48px;font-weight:400;opacity:.85}
+.homeBtns button:first-child{background:linear-gradient(135deg,#12a24c,#2ee76f);border-color:#55f18b}
+.homeBtns button:last-child{background:linear-gradient(135deg,#1d64ed,#4598ff);border-color:#75b4ff}
+.homeFooter{display:grid;grid-template-columns:repeat(5,1fr);margin:26px -30px 0;padding:18px 22px;background:linear-gradient(180deg,#0b172b,#050c19);border-top:1px solid #31496f;border-radius:0 0 26px 26px;gap:0}
+.homeFooter>div{display:flex;align-items:center;justify-content:center;gap:12px;border-right:1px solid #31405a;min-height:58px}
+.homeFooter>div:last-child{border-right:0}
+.homeFooter strong{font-size:31px;color:#fff}
+.homeFooter span{display:flex;flex-direction:column;gap:2px}
+.homeFooter b{font-size:14px;color:#fff}
+.homeFooter small{font-size:12px;color:#aebbd0}
+@media(max-width:1000px){.categoryGrid{grid-template-columns:repeat(4,1fr)}.homeFooter{grid-template-columns:repeat(3,1fr)}.homeFooter>div:nth-child(3){border-right:0}.homeFooter>div:nth-child(4),.homeFooter>div:nth-child(5){border-top:1px solid #31405a;padding-top:10px}}
+@media(max-width:700px){#home{padding:22px 16px 0}.categoryTools{margin-top:8px;justify-content:flex-start}.categoryGrid{grid-template-columns:repeat(2,1fr)}.categoryBtn{min-height:72px;font-size:15px;padding:14px}.homeBtns{grid-template-columns:1fr}.homeBtns button{min-height:78px}.homeFooter{grid-template-columns:1fr 1fr;margin-left:-16px;margin-right:-16px}.homeFooter>div{border-right:0!important;border-bottom:1px solid #31405a}.homeFooter>div:last-child{grid-column:1/-1;border-bottom:0}.brand{letter-spacing:3px}.tag{font-size:12px;letter-spacing:1.5px}}
+
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="brand">PLEASANT GROVE CHURCH</div>
+<h1>PGC Trivia 🎯</h1>
+<div class="tag">THE BIG GAME • 3 ROUNDS • HALFTIME • FINAL WAGER</div>
+
+<section id="home" class="card">
+<h2>Welcome!</h2>
+<p class="status">Choose the categories you want in your game. You can mix as many as you like.</p>
+<div class="categoryTools">
+<button class="mini" onclick="selectAllCategories()">✓ All Categories</button>
+<button class="mini secondary" onclick="clearCategories()">Clear</button>
+</div>
+<div id="categoryGrid" class="categoryGrid">
+<button type="button" class="categoryBtn selected" data-cat="Bible" onclick="toggleCategory('Bible')">📖 Bible <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="General Knowledge" onclick="toggleCategory('General Knowledge')">🧠 General Knowledge <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="History" onclick="toggleCategory('History')">🏛️ History <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="U.S. History" onclick="toggleCategory('U.S. History')">🇺🇸 U.S. History <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Geography" onclick="toggleCategory('Geography')">🌎 Geography <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Science" onclick="toggleCategory('Science')">🔬 Science <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Sports" onclick="toggleCategory('Sports')">🏆 Sports <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Music" onclick="toggleCategory('Music')">🎵 Music <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Movies & TV" onclick="toggleCategory('Movies & TV')">🎬 Movies &amp; TV <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Literature" onclick="toggleCategory('Literature')">📚 Literature <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Nature & Animals" onclick="toggleCategory('Nature & Animals')">🐾 Nature &amp; Animals <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Art" onclick="toggleCategory('Art')">🎨 Art <span class="check">✓</span></button>
+<button type="button" class="categoryBtn selected" data-cat="Food & Drink" onclick="toggleCategory('Food & Drink')">🍔 Food &amp; Drink <span class="check">✓</span></button>
+</div>
+<div id="categoryStatus" class="notice" style="margin-top:12px"></div>
+<div class="homeBtns" style="margin-top:14px">
+<button onclick="hostGame()">🎤 <span>Host a Game</span><small>Get a 6-digit code for players to join.</small><b>›</b></button>
+<button class="secondary" onclick="show('join')">📱 <span>Join a Game</span><small>Enter the 6-digit code to play.</small><b>›</b></button>
+</div>
+<div class="homeFooter">
+  <div><strong>❓</strong><span><b>60 Questions</b><small>25 in Round 1</small></span></div>
+  <div><strong>⏱</strong><span><b>Halftime</b><small>5 Questions</small></span></div>
+  <div><strong>❓</strong><span><b>Round 2</b><small>30 Questions</small></span></div>
+  <div><strong>🏆</strong><span><b>Final Wager</b><small>1 Question</small></span></div>
+  <div><strong>📊</strong><span><b>Final Leaderboard</b><small>See the Winners</small></span></div>
+</div>
+</section>
+
+<section id="join" class="card hidden">
+<h2>📱 Join the Big Game</h2>
+<input id="codeInput" maxlength="6" placeholder="6-digit game code" inputmode="numeric">
+<input id="nameInput" maxlength="20" placeholder="Your name">
+<button class="wide" onclick="joinGame()">Join Game</button>
+<button class="secondary wide" onclick="show('home')">Back</button>
+<p id="joinStatus" class="status"></p>
+</section>
+
+<section id="host" class="hidden">
+<div class="card">
+<div class="round" id="hostRound">PRE-GAME</div>
+<h2>🎤 Host Control Center</h2>
+<div class="notice">🔴 LIVE GAME • SHARE THIS CODE</div>
+<div id="room" class="code">------</div>
+<p class="status">Players enter this code on the same website.</p>
+<div class="notice" id="hostCategorySummary">Categories: All categories</div>
+<div id="hostPlayers" class="players"></div>
+<div id="hostMainControls">
+<button id="startBtn" class="wide" onclick="startGame()">▶️ Start Game</button>
+</div>
+<p id="hostStatus" class="status"></p>
+<div class="notice" id="historyStatus">Question history: 0 used forever on this host.</div>
+</div>
+
+<div id="hostQuestionCard" class="card hostQuestion hidden">
+<div><span class="pill" id="hqRound"></span> <span class="pill" id="hqCat"></span> <span class="pill" id="hqValue"></span></div>
+<div id="hqProgress" class="small" style="margin-top:9px"></div><div id="hostTimer" class="timer">⏱️ 90</div>
+<div id="hqText" class="question"></div>
+<div id="hqAnswers" class="answers"></div>
+<div id="responses" class="players" style="margin-top:12px"></div>
+<div class="controlRow" style="margin-top:12px">
+<button onclick="revealCurrent()">🔎 Reveal Answer</button>
+<button class="secondary" onclick="continueGame()">➡️ Continue</button>
+</div>
+</div>
+
+<div id="hostIntermission" class="card hidden">
+<div class="round" id="intermissionTitle"></div>
+<h2 id="intermissionText"></h2>
+<p class="status" id="intermissionScores"></p>
+<button class="wide" onclick="beginNextStage()" id="intermissionBtn">Continue</button>
+</div>
+
+<div id="hostFinal" class="card finalBox hidden">
+<div class="round">🏆 FINAL QUESTION</div>
+<h2>Make your wager!</h2><div id="finalTimer" class="timer">⏱️ 180</div>
+<div id="finalQuestionText" class="question"></div>
+<div id="finalResponses" class="players"></div>
+<button class="wide" onclick="revealFinal()">🔎 Reveal Final Answer</button>
+<button class="secondary wide" onclick="finishGame()">🏆 Finish Game</button>
+</div>
+
+<div class="card">
+<h2>📊 Game Progress</h2>
+<div id="progressBoard" class="board"></div>
+</div>
+</section>
+
+<section id="playerGame" class="card hidden">
+<div class="round" id="pgRound"></div>
+<div id="pgProgress" class="small"></div><div id="playerTimer" class="timer">⏱️ --</div>
+<h2 id="pgCat"></h2>
+<div id="pgQuestion" class="question"></div>
+<div id="pgAnswers" class="answers"></div>
+<div id="pgWagerBox" class="hidden">
+<div class="notice">Final wager — enter an amount from $0 up to your score.</div>
+<input id="wagerInput" type="number" min="0" placeholder="Your wager">
+</div>
+<button id="submitWagerBtn" class="wide hidden" onclick="submitFinalWager()">Submit Wager</button>
+<div id="pgStatus" class="notice">Waiting for the host...</div>
+</section>
+
+<section id="scores" class="card hidden">
+<h2>🏆 FINAL LEADERBOARD</h2>
+<div id="finalScores" class="leader"></div>
+<button class="wide" onclick="location.reload()">Play Again</button>
+</section>
+</div>
+
+<div id="modal" class="modal hidden">
+<div class="card">
+<h2 id="modalTitle"></h2>
+<p id="modalText"></p>
+<button class="wide" onclick="closeModal()">OK</button>
+</div>
+</div>
+
+<script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const QUESTIONS = [["History", "Which treaty formally ended the American Revolutionary War?", ["Treaty of Paris (1783)", "Treaty of Ghent", "Treaty of Versailles", "Treaty of Utrecht"], 0], ["Bible", "Which Old Testament prophet confronted the prophets of Baal on Mount Carmel?", ["Elisha", "Elijah", "Isaiah", "Jeremiah"], 1], ["Geography", "Which country has the longest coastline in the world?", ["Russia", "Australia", "Canada", "United States"], 2], ["Science", "What is the chemical symbol for tungsten?", ["T", "W", "Tu", "Ts"], 1], ["Sports", "In baseball, how many outs are there in a complete inning?", ["2", "3", "6", "9"], 2], ["Music", "Which band released the album 'Rumours' in 1977?", ["Fleetwood Mac", "The Eagles", "ABBA", "Journey"], 0], ["Movies & TV", "In the TV series 'M*A*S*H', what was the fictional 4077th?", ["Hospital unit", "Air squadron", "Infantry regiment", "Navy ship"], 0], ["Bible", "Which Gospel begins with a genealogy tracing Jesus back to Abraham?", ["Matthew", "Mark", "Luke", "John"], 0], ["U.S. History", "Which amendment abolished slavery in the United States?", ["10th", "12th", "13th", "15th"], 2], ["General Knowledge", "What is the only mammal capable of sustained true flight?", ["Flying squirrel", "Bat", "Sugar glider", "Colugo"], 1], ["Geography", "The Strait of Gibraltar connects the Atlantic Ocean with which sea?", ["Black Sea", "Red Sea", "Mediterranean Sea", "Caspian Sea"], 2], ["Science", "What particle carries a negative electric charge?", ["Proton", "Neutron", "Electron", "Photon"], 2], ["Sports", "How many yards are in a first down in American football?", ["5", "8", "10", "15"], 2], ["Music", "Which singer was known as the 'King of Pop'?", ["Prince", "Michael Jackson", "Elvis Presley", "Lionel Richie"], 1], ["Literature", "Who wrote 'The Old Man and the Sea'?", ["John Steinbeck", "Ernest Hemingway", "F. Scott Fitzgerald", "William Faulkner"], 1], ["Bible", "Which judge of Israel was known for extraordinary strength?", ["Gideon", "Samson", "Deborah", "Jephthah"], 1], ["U.S. History", "Which U.S. president purchased the Louisiana Territory in 1803?", ["Thomas Jefferson", "James Madison", "John Adams", "Andrew Jackson"], 0], ["Science", "What is the hardest naturally occurring mineral?", ["Quartz", "Diamond", "Topaz", "Corundum"], 1], ["Movies & TV", "Which film won the Academy Award for Best Picture for 1994?", ["Forrest Gump", "Pulp Fiction", "The Shawshank Redemption", "Braveheart"], 0], ["General Knowledge", "Which instrument measures atmospheric pressure?", ["Barometer", "Hygrometer", "Anemometer", "Altimeter"], 0], ["Geography", "What is the capital city of Australia?", ["Sydney", "Melbourne", "Canberra", "Perth"], 2], ["Sports", "In golf, what is three strokes under par on a single hole called?", ["Eagle", "Albatross", "Birdie", "Condor"], 1], ["Bible", "Which book of the Bible contains the story of Esther?", ["Ezra", "Nehemiah", "Esther", "Ruth"], 2], ["History", "Which ancient civilization built Machu Picchu?", ["Maya", "Aztec", "Inca", "Olmec"], 2], ["Music", "Which group recorded the song 'Hotel California'?", ["The Eagles", "The Doobie Brothers", "Lynyrd Skynyrd", "Boston"], 0], ["Halftime", "Which planet has the shortest day, rotating once in about 10 hours?", ["Mars", "Jupiter", "Saturn", "Neptune"], 1], ["Halftime", "What is the largest internal organ in the human body?", ["Liver", "Lung", "Kidney", "Heart"], 0], ["Halftime", "Which U.S. state is home to the city of Anchorage?", ["Alaska", "Hawaii", "Washington", "Oregon"], 0], ["Halftime", "In chess, which piece can move in an L-shaped pattern?", ["Bishop", "Rook", "Knight", "Queen"], 2], ["Halftime", "Which author created the detective Hercule Poirot?", ["Arthur Conan Doyle", "Agatha Christie", "Dorothy Sayers", "Raymond Chandler"], 1], ["Bible", "Which prophet interpreted King Nebuchadnezzar's dreams in the Book of Daniel?", ["Daniel", "Ezekiel", "Isaiah", "Samuel"], 0], ["U.S. History", "Which battle is often considered the turning point of the American Civil War?", ["Antietam", "Gettysburg", "Vicksburg", "Fort Donelson"], 1], ["Science", "What process do plants use to convert light energy into chemical energy?", ["Respiration", "Fermentation", "Photosynthesis", "Osmosis"], 2], ["Geography", "Which African country completely surrounds the country of Lesotho?", ["Botswana", "Namibia", "South Africa", "Zimbabwe"], 2], ["Sports", "Which NFL team completed the only perfect season in the Super Bowl era?", ["1972 Miami Dolphins", "1985 Chicago Bears", "2007 New England Patriots", "1976 Oakland Raiders"], 0], ["Music", "Which composer wrote the Ninth Symphony known for 'Ode to Joy'?", ["Mozart", "Beethoven", "Bach", "Haydn"], 1], ["Literature", "In George Orwell's '1984', what is the name of the ruling political figure?", ["Big Brother", "The Leader", "The Chairman", "O'Brien"], 0], ["History", "The Magna Carta was originally issued in which country?", ["France", "England", "Spain", "Scotland"], 1], ["Bible", "Which apostle is traditionally associated with the Gospel of Mark as his interpreter?", ["Peter", "Paul", "John", "Thomas"], 0], ["Science", "What is the SI unit of electrical resistance?", ["Volt", "Ampere", "Ohm", "Watt"], 2], ["Geography", "Which river flows through Vienna, Budapest, and Belgrade?", ["Rhine", "Danube", "Volga", "Seine"], 1], ["Sports", "What is the maximum score with three darts in a single turn in standard darts?", ["120", "150", "180", "210"], 2], ["Movies & TV", "Which actor played the title character in the original 'Indiana Jones' film series?", ["Tom Hanks", "Harrison Ford", "Mel Gibson", "Kevin Costner"], 1], ["Music", "Which rock band featured Mick Jagger and Keith Richards?", ["The Who", "The Rolling Stones", "Led Zeppelin", "Aerosmith"], 1], ["Bible", "What was the name of the Roman governor who presided over Jesus' trial?", ["Herod Antipas", "Pontius Pilate", "Felix", "Festus"], 1], ["U.S. History", "Which document begins with the words 'We the People'?", ["Declaration of Independence", "Articles of Confederation", "U.S. Constitution", "Federalist Papers"], 2], ["Science", "Which blood type is known as the universal red-cell donor?", ["AB positive", "O positive", "O negative", "A negative"], 2], ["Geography", "Which desert is the largest hot desert in the world?", ["Gobi", "Sahara", "Arabian", "Kalahari"], 1], ["Sports", "In basketball, how many personal fouls generally disqualify an NBA player?", ["4", "5", "6", "7"], 2], ["General Knowledge", "Which language has the most native speakers worldwide?", ["English", "Spanish", "Mandarin Chinese", "Hindi"], 2], ["Literature", "Who wrote 'One Hundred Years of Solitude'?", ["Gabriel García Márquez", "Pablo Neruda", "Jorge Luis Borges", "Mario Vargas Llosa"], 0], ["Bible", "Which Old Testament book is primarily a collection of wisdom sayings traditionally associated with Solomon?", ["Proverbs", "Ecclesiastes", "Job", "Song of Solomon"], 0], ["History", "Which empire was ruled by Suleiman the Magnificent?", ["Roman", "Ottoman", "Byzantine", "Mughal"], 1], ["Science", "What is the nearest star to Earth after the Sun?", ["Sirius", "Alpha Centauri A", "Proxima Centauri", "Betelgeuse"], 2], ["Geography", "Which country is home to the ancient city of Petra?", ["Jordan", "Lebanon", "Turkey", "Syria"], 0], ["Sports", "Which country has won the most men's FIFA World Cup titles?", ["Germany", "Argentina", "Italy", "Brazil"], 3], ["Music", "Which singer-songwriter wrote and recorded 'Piano Man'?", ["Billy Joel", "Elton John", "Paul Simon", "Bruce Springsteen"], 0], ["Movies & TV", "Which television series is set primarily in the fictional town of Hawkins, Indiana?", ["Riverdale", "Stranger Things", "The X-Files", "Supernatural"], 1], ["General Knowledge", "What is the name for a word that has the opposite meaning of another word?", ["Synonym", "Homonym", "Antonym", "Acronym"], 2], ["Bible", "Which New Testament book records Paul's conversion on the road to Damascus?", ["Romans", "Acts", "Galatians", "Hebrews"], 1]];
+const FINAL_Q = null;
+
+// Question history is kept on the host device. Once a question is used, its
+// normalized question text is permanently reserved on that device and will
+// not be selected again by this game.
+const HISTORY_KEY = "pgcTriviaUsedQuestionsV3";
+let usedQuestions = loadUsedQuestions();
+let questionBank = [];
+
+let peer=null, conn=null, room="", isHost=false;
+let players={}, current=null, gameStarted=false, stage="pre";
+let round1=[], halftime=[], round2=[], currentFinal=null, qIndex=0, responses={}, revealed=false, finalResponses={}, finalRevealed=false;
+let playerScore=0, playerAnswered=false, finalWager=0;
+
+const ROUND1_COUNT=25, HALFTIME_COUNT=5, ROUND2_COUNT=30;
+const QUESTION_SECONDS=90, HALFTIME_SECONDS=180, FINAL_SECONDS=180;
+const GAME_QUESTION_COUNT=61;
+let timerHandle=null, timerEndsAt=0, playerTimerHandle=null, finalTimerHandle=null;
+
+function show(id){
+ ['home','join','host','playerGame','scores'].forEach(x=>document.getElementById(x).classList.toggle('hidden',x!==id));
+}
 function esc(s){return String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]))}
-function gameCode(){return Math.floor(100000+Math.random()*900000).toString()}
-function hostGame(){isHost=true;room=gameCode();show('host');document.getElementById('room').textContent=room;renderBoard();peer=new Peer('pgc-big-'+room);peer.on('open',()=>setHostStatus('Waiting for players...'));peer.on('connection',c=>{c.on('open',()=>{players[c.peer]={name:'Player',score:0,c,answers:0};c.send({t:'hello'});renderPlayers()});c.on('data',d=>hostData(c,d));c.on('close',()=>{delete players[c.peer];renderPlayers()})});peer.on('error',e=>setHostStatus('Connection error. Try hosting again.'))}
-function hostData(c,d){if(d.t==='join'){players[c.peer].name=d.name||'Player';renderPlayers();broadcast({t:'players',p:safePlayers()})}if(d.t==='answer'&&current){let p=players[c.peer];if(p.answers===current.id)return;p.answers=current.id;responses[c.peer]={name:p.name,answer:d.i,correct:d.i===current.correct};if(d.i===current.correct)p.score+=current.value;renderHostResponses();renderPlayers();broadcast({t:'scores',p:safePlayers()})}}
-function safePlayers(){let o={};Object.keys(players).forEach(k=>o[k]={name:players[k].name,score:players[k].score});return o}
-function broadcast(d){Object.values(players).forEach(p=>{try{p.c.send(d)}catch(e){}})}
-function renderPlayers(){document.getElementById('hostPlayers').innerHTML=Object.values(players).sort((a,b)=>b.score-a.score).map(p=>`<div class="player"><span>${esc(p.name)}</span><span class="score">${p.score}</span></div>`).join('')||'<div class="small">No players yet.</div>'}
-function renderBoard(){document.getElementById('board').innerHTML=cats.map((c,ci)=>`<div class="cat"><h3>${esc(c[0])}</h3>${c[1].map((q,qi)=>{let id=ci+'-'+qi;return `<button class="cell ${used[id]?'used':''}" ${used[id]?'disabled':''} onclick="ask(${ci},${qi})">${used[id]?'✓':'$'+((qi+1)*100)}</button>`}).join('')}</div>`).join('')}
-function startGame(){if(!Object.keys(players).length){setHostStatus('Have at least one player join first.');return}started=true;broadcast({t:'start'});setHostStatus('Game started! Choose a category and point value.');}
-function ask(ci,qi){if(!started)return;let id=ci+'-'+qi;if(used[id])return;used[id]=true;current={...allQ.find(x=>x.cat===ci&&x.qi===qi),id};responses={};Object.values(players).forEach(p=>p.answers=null);renderBoard();document.getElementById('hostQuestion').classList.remove('hidden');document.getElementById('hqCat').textContent=cats[ci][0];document.getElementById('hqValue').textContent='$'+current.value;document.getElementById('hqText').textContent=current.q;document.getElementById('hqAnswers').innerHTML=current.a.map((a,i)=>`<button id="ha${i}" onclick="revealHost(${i})">${esc(a)}</button>`).join('');document.getElementById('responses').innerHTML='<div class="small">Waiting for answers...</div>';broadcast({t:'question',cat:cats[ci][0],value:current.value,q:current.q,a:current.a})}
-function revealHost(i){current.revealed=i;current.a.forEach((_,j)=>{let b=document.getElementById('ha'+j);if(b){b.classList.toggle('correct',j===current.correct);b.classList.toggle('wrong',j===i&&j!==current.correct)}});renderHostResponses()}
-function renderHostResponses(){let vals=Object.values(responses);document.getElementById('responses').innerHTML=vals.length?vals.map(r=>`<div class="player"><span>${esc(r.name)} — ${esc(current.a[r.answer])}</span><span>${r.correct?'✓':'✗'}</span></div>`).join(''):'<div class="small">Waiting for answers...</div>'}
-function closeQuestion(){document.getElementById('hostQuestion').classList.add('hidden');current=null;responses={};broadcast({t:'clear'})}
-function finishGame(){broadcast({t:'end',p:safePlayers()});showFinal(safePlayers())}
+function code6(){return Math.floor(100000+Math.random()*900000).toString()}
+function shuffle(a){return [...a].sort(()=>Math.random()-0.5)}
+function money(n){return "$"+Number(n||0).toLocaleString()}
+function closeModal(){document.getElementById('modal').classList.add('hidden')}
+function modal(t,m){document.getElementById('modalTitle').textContent=t;document.getElementById('modalText').textContent=m;document.getElementById('modal').classList.remove('hidden')}
 function setHostStatus(t){document.getElementById('hostStatus').textContent=t}
-function joinGame(){room=document.getElementById('code').value.trim();let name=document.getElementById('name').value.trim()||'Player';if(room.length!==6){document.getElementById('joinStatus').textContent='Enter the 6-digit code.';return}show('playerGame');document.getElementById('pgStatus').textContent='Connecting...';peer=new Peer();peer.on('open',()=>{conn=peer.connect('pgc-big-'+room);conn.on('open',()=>{conn.send({t:'join',name});document.getElementById('pgStatus').textContent='Connected! Waiting for the host to start...'});conn.on('data',playerData)});peer.on('error',()=>document.getElementById('pgStatus').textContent='Could not connect. Check the game code.')}
-function playerData(d){if(d.t==='start')document.getElementById('pgStatus').textContent='Game started! Watch the board.';if(d.t==='question')renderPlayerQuestion(d);if(d.t==='clear'){document.getElementById('pgQuestion').textContent='Waiting for the next question...';document.getElementById('pgAnswers').innerHTML='';}if(d.t==='scores'){}if(d.t==='end')showFinal(d.p)}
-function renderPlayerQuestion(d){document.getElementById('pgCat').textContent=d.cat+' • $'+d.value;document.getElementById('pgProgress').textContent='Your answer earns the full point value if correct.';document.getElementById('pgQuestion').textContent=d.q;document.getElementById('pgAnswers').innerHTML=d.a.map((a,i)=>`<button onclick="sendAnswer(${i},this)">${esc(a)}</button>`).join('');document.getElementById('pgStatus').textContent='Choose your answer.'}
-function sendAnswer(i,b){if(!conn)return;Array.from(document.querySelectorAll('#pgAnswers button')).forEach(x=>x.disabled=true);b.style.outline='3px solid #f5c542';conn.send({t:'answer',i});document.getElementById('pgStatus').textContent='Answer submitted! Waiting for the next question...'}
-function showFinal(p){show('scores');let arr=Object.values(p).sort((a,b)=>b.score-a.score);document.getElementById('finalScores').innerHTML=arr.map((x,i)=>`<div class="player rank"><span>${i+1}. ${esc(x.name)}</span><span class="score">${x.score}</span></div>`).join('')||'<div class="small">No scores yet.</div>'}
-</script></body></html>
+
+function normalizeQuestion(q){
+ return String(q||'').toLowerCase().replace(/&[^;]+;/g,' ').replace(/[^a-z0-9]+/g,' ').trim();
+}
+function loadUsedQuestions(){
+ try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||'{}')||{}}catch(e){return {}}
+}
+function saveUsedQuestions(){
+ try{localStorage.setItem(HISTORY_KEY,JSON.stringify(usedQuestions))}catch(e){}
+ updateHistoryStatus();
+}
+function markUsed(list){
+ list.forEach(q=>{const id=normalizeQuestion(q[1]); if(id) usedQuestions[id]={q:q[1],usedAt:new Date().toISOString()};});
+ saveUsedQuestions();
+}
+function updateHistoryStatus(){
+ const el=document.getElementById('historyStatus');
+ if(el) el.textContent=`Question history: ${Object.keys(usedQuestions).length} questions used forever on this host.`;
+}
+function decodeHTML(s){
+ const t=document.createElement('textarea'); t.innerHTML=s; return t.value;
+}
+const CATEGORY_OPTIONS=[
+ {name:'Bible',id:null,emoji:'📖'},
+ {name:'General Knowledge',id:9,emoji:'🧠'},
+ {name:'History',id:23,emoji:'🏛️'},
+ {name:'U.S. History',id:null,emoji:'🇺🇸'},
+ {name:'Geography',id:22,emoji:'🌎'},
+ {name:'Science',id:17,emoji:'🔬'},
+ {name:'Sports',id:21,emoji:'🏆'},
+ {name:'Music',id:12,emoji:'🎵'},
+ {name:'Movies & TV',id:11,emoji:'🎬'},
+ {name:'Literature',id:10,emoji:'📚'},
+ {name:'Nature & Animals',id:27,emoji:'🐾'},
+ {name:'Art',id:25,emoji:'🎨'},
+ {name:'Food & Drink',id:31,emoji:'🍔'}
+];
+let selectedCategories=new Set(CATEGORY_OPTIONS.map(c=>c.name));
+
+function apiCategory(cat){
+ const m={
+  'Entertainment: Music':'Music','Entertainment: Film':'Movies & TV','Entertainment: Television':'Movies & TV',
+  'Entertainment: Books':'Literature','Entertainment: Board Games':'General Knowledge','Entertainment: Musicals & Theatres':'Movies & TV',
+  'Science & Nature':'Science','Science: Mathematics':'Science','Science: Gadgets':'Science',
+  'Geography':'Geography','History':'History','Sports':'Sports','General Knowledge':'General Knowledge',
+  'Animals':'Nature & Animals','Mythology':'General Knowledge','Art':'Art','Food & Drink':'Food & Drink'
+ };
+ return m[cat]||null;
+}
+function renderCategoryPicker(){
+ const el=document.getElementById('categoryGrid'); if(!el)return;
+ const safeName=n=>String(n).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;').replace(/'/g,'&#39;');
+ el.innerHTML=CATEGORY_OPTIONS.map(c=>{
+   const selected=selectedCategories.has(c.name);
+   const fnName=String(c.name).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+   return '<button type="button" class="categoryBtn '+(selected?'selected':'')+'" onclick="toggleCategory(\''+fnName+'\')">'+c.emoji+' '+safeName(c.name)+' <span class="check">'+(selected?'✓':'')+'</span></button>';
+ }).join('');
+ const names=[...selectedCategories];
+ const status=document.getElementById('categoryStatus');
+ if(status){status.innerHTML='<span class="categorySummary">'+(names.length===CATEGORY_OPTIONS.length?'All categories':names.length+' categories selected')+'</span> • '+(names.length?names.join(' • '):'Choose at least one category');}
+}
+function toggleCategory(name){
+ if(selectedCategories.has(name)){if(selectedCategories.size===1)return;selectedCategories.delete(name)}else selectedCategories.add(name);
+ renderCategoryPicker();
+}
+function selectAllCategories(){selectedCategories=new Set(CATEGORY_OPTIONS.map(c=>c.name));renderCategoryPicker()}
+function clearCategories(){selectedCategories=new Set();renderCategoryPicker()}
+function convertApiQuestion(x){
+ const cat=apiCategory(x.category); if(!cat)return null;
+ const q=decodeHTML(x.question).replace(/\s+/g,' ').trim();
+ const correct=decodeHTML(x.correct_answer).replace(/\s+/g,' ').trim();
+ const answers=[correct,...x.incorrect_answers.map(a=>decodeHTML(a).replace(/\s+/g,' ').trim())];
+ return [cat,q,shuffle(answers),null, x.difficulty||'medium'];
+}
+function fixCorrectIndex(q,correctText){
+ const idx=q[2].indexOf(correctText); q[3]=idx;
+}
+async function fetchTriviaBatch(amount=50,difficulty='medium',apiId=null){
+ try{
+   let url=`https://opentdb.com/api.php?amount=${amount}&type=multiple&difficulty=${difficulty}`;
+   if(apiId) url+=`&category=${apiId}`;
+   const r=await fetch(url,{cache:'no-store'}); if(!r.ok) throw new Error('network');
+   const data=await r.json(); if(!data.results)return [];
+   return data.results.map(x=>{
+     const correct=decodeHTML(x.correct_answer).replace(/\s+/g,' ').trim();
+     const q=convertApiQuestion(x); if(!q)return null;
+     fixCorrectIndex(q,correct); return q;
+   }).filter(Boolean);
+ }catch(e){return []}
+}
+async function fetchForSelectedCategories(amount=50,difficulty='medium'){
+ const cats=CATEGORY_OPTIONS.filter(c=>selectedCategories.has(c.name)&&c.id);
+ if(!cats.length)return [];
+ const each=Math.max(8,Math.ceil(amount/cats.length));
+ let out=[];
+ for(let i=0;i<cats.length && out.length<amount;i++){
+   if(i>0) await new Promise(r=>setTimeout(r,5200));
+   const batch=await fetchTriviaBatch(each,difficulty,cats[i].id);
+   out.push(...batch);
+ }
+ return out;
+}
+async function ensureQuestionPool(needed){
+ const active=[...selectedCategories];
+ const candidates=[...QUESTIONS.filter(q=>q[0]!=='Halftime' && active.includes(q[0]))];
+ const seen=new Set(candidates.map(q=>normalizeQuestion(q[1])));
+ let available=candidates.filter(q=>!usedQuestions[normalizeQuestion(q[1])]);
+ const target=needed;
+ if(available.length<target){
+   const batches=Math.min(6,Math.max(1,Math.ceil((target-available.length)/35)));
+   for(let i=0;i<batches && available.length<target;i++){
+     if(i>0) await new Promise(r=>setTimeout(r,5200));
+     const batch=await fetchForSelectedCategories(50,'medium');
+     batch.forEach(q=>{
+       if(!active.includes(q[0]))return;
+       const id=normalizeQuestion(q[1]);
+       if(id && !seen.has(id)){seen.add(id);questionBank.push(q);if(!usedQuestions[id])available.push(q);}
+     });
+   }
+   if(available.length>=target){
+     await new Promise(r=>setTimeout(r,5200));
+     const hardBatch=await fetchForSelectedCategories(35,'hard');
+     hardBatch.forEach(q=>{
+       if(!active.includes(q[0]))return;
+       const id=normalizeQuestion(q[1]);
+       if(id && !seen.has(id)){seen.add(id);questionBank.push(q);if(!usedQuestions[id])available.push(q);}
+     });
+   }
+ }
+ questionBank=[...candidates,...questionBank.filter(q=>active.includes(q[0])&&!candidates.some(c=>normalizeQuestion(c[1])===normalizeQuestion(q[1])))];
+ available=questionBank.filter(q=>q[0]!=='Halftime'&&active.includes(q[0])&&!usedQuestions[normalizeQuestion(q[1])]);
+ return available;
+}
+function chooseUnique(list,count){
+ const copy=shuffle(list); const out=[]; const ids=new Set();
+ for(const q of copy){const id=normalizeQuestion(q[1]); if(!ids.has(id)){ids.add(id);out.push(q);if(out.length===count)break;}}
+ return out;
+}
+function disableStart(msg){const b=document.getElementById('startBtn');if(b){b.disabled=true;b.textContent='⏳ Loading Questions...'};setHostStatus(msg)}
+
+renderCategoryPicker();
+
+function hostGame(){
+ isHost=true; room=code6(); show('host'); updateHistoryStatus();
+ document.getElementById('room').textContent=room;
+ const hc=document.getElementById('hostCategorySummary'); if(hc) hc.textContent='Categories: '+([...selectedCategories].length===CATEGORY_OPTIONS.length?'All categories':[...selectedCategories].join(' • '));
+ peer=new Peer('pgc-big-'+room);
+ peer.on('open',()=>setHostStatus('Waiting for players...'));
+ peer.on('connection',c=>{
+   c.on('open',()=>{
+     players[c.peer]={name:'Player',score:0,c,answered:false};
+     c.send({t:'hello'});
+     renderPlayers(); broadcast({t:'players',p:safePlayers()});
+   });
+   c.on('data',d=>hostData(c,d));
+   c.on('close',()=>{delete players[c.peer];renderPlayers();broadcast({t:'players',p:safePlayers()})});
+ });
+ peer.on('error',()=>setHostStatus('Connection error. Please host a new game.'));
+ renderProgress();
+}
+
+function safePlayers(){
+ let out={};Object.keys(players).forEach(k=>out[k]={name:players[k].name,score:players[k].score});return out;
+}
+function broadcast(d){Object.values(players).forEach(p=>{try{p.c.send(d)}catch(e){}})}
+
+function hostData(c,d){
+ if(d.t==='join'){
+   players[c.peer].name=d.name||'Player';
+   renderPlayers(); broadcast({t:'players',p:safePlayers()});
+ }
+ if(d.t==='answer' && current && stage!=='final'){
+   const p=players[c.peer]; if(!p || p.answered) return;
+   p.answered=true;
+   const correct=d.i===current.correct;
+   responses[c.peer]={name:p.name,answer:d.i,correct};
+   if(correct) p.score+=current.value;
+   renderPlayers(); renderResponses();
+   broadcast({t:'scores',p:safePlayers()});
+ }
+ if(d.t==='finalAnswer' && stage==='final'){
+   const p=players[c.peer]; if(!p || finalResponses[c.peer]) return;
+   const wager=Math.max(0,Math.min(Number(d.wager)||0,p.score));
+   finalResponses[c.peer]={name:p.name,answer:d.i,wager};
+   renderFinalResponses();
+ }
+}
+
+function renderPlayers(){
+ const vals=Object.values(players).sort((a,b)=>b.score-a.score);
+ document.getElementById('hostPlayers').innerHTML=vals.length
+ ? vals.map(p=>`<div class="player"><span>${esc(p.name)}</span><span class="score">${money(p.score)}</span></div>`).join('')
+ : '<div class="small">No players yet.</div>';
+}
+
+function stopTimers(){
+ if(timerHandle){clearInterval(timerHandle);timerHandle=null}
+ if(playerTimerHandle){clearInterval(playerTimerHandle);playerTimerHandle=null}
+ if(finalTimerHandle){clearInterval(finalTimerHandle);finalTimerHandle=null}
+}
+function fmtTimer(sec){return Math.max(0,Math.ceil(sec))}
+function paintTimer(el,sec){
+ if(!el)return; el.textContent='⏱️ '+fmtTimer(sec); el.classList.toggle('warning',sec<=5)
+}
+function startHostTimer(seconds,onExpire){
+ if(timerHandle)clearInterval(timerHandle); timerEndsAt=Date.now()+seconds*1000;
+ const tick=()=>{const left=(timerEndsAt-Date.now())/1000;paintTimer(document.getElementById('hostTimer'),left);if(left<=0){clearInterval(timerHandle);timerHandle=null;onExpire&&onExpire()}};
+ tick();timerHandle=setInterval(tick,250)
+}
+function startFinalHostTimer(seconds){
+ if(finalTimerHandle)clearInterval(finalTimerHandle); const end=Date.now()+seconds*1000;
+ const tick=()=>{const left=(end-Date.now())/1000;paintTimer(document.getElementById('finalTimer'),left);if(left<=0){clearInterval(finalTimerHandle);finalTimerHandle=null;if(!finalRevealed)revealFinal()}};
+ tick();finalTimerHandle=setInterval(tick,250)
+}
+function startPlayerTimer(endsAt){
+ if(playerTimerHandle)clearInterval(playerTimerHandle); const tick=()=>{const left=(endsAt-Date.now())/1000;paintTimer(document.getElementById('playerTimer'),left);if(left<=0){clearInterval(playerTimerHandle);playerTimerHandle=null;if(!playerAnswered){playerAnswered=true;Array.from(document.querySelectorAll('#pgAnswers button')).forEach(x=>x.disabled=true);const wb=document.getElementById('submitWagerBtn');if(wb)wb.disabled=true;document.getElementById('pgStatus').textContent='⏰ Time is up! Waiting for the host.'}}};tick();playerTimerHandle=setInterval(tick,250)
+}
+
+async function startGame(){
+ if(!Object.keys(players).length){setHostStatus('Have at least one player join first.');return}
+ const btn=document.getElementById('startBtn'); if(btn) btn.disabled=true;
+ const active=[...selectedCategories];
+ if(!active.length){setHostStatus('Choose at least one category first.');return}
+ setHostStatus('Building a new game from your selected categories...');
+ const available=await ensureQuestionPool(GAME_QUESTION_COUNT);
+ if(available.length<GAME_QUESTION_COUNT){
+   if(btn){btn.disabled=false;btn.textContent='▶️ Start Game'}
+   setHostStatus(`Only ${available.length} unused questions are available for your selected categories. Choose more categories or check your internet connection, then try again.`);
+   return;
+ }
+ let selected=chooseUnique(available,GAME_QUESTION_COUNT);
+ // Favor a gradual difficulty curve: Round 2 and the final can contain harder
+ // questions, while Round 1 remains approachable. The final is taken from the
+ // harder portion whenever possible.
+ const hard=shuffle(available.filter(q=>q[4]==='hard'));
+ const medium=shuffle(available.filter(q=>q[4]!=='hard'));
+ const targetHard=Math.min(16,hard.length);
+ const hardPick=hard.slice(0,targetHard);
+ const remaining=medium.filter(q=>!hardPick.some(h=>normalizeQuestion(h[1])===normalizeQuestion(q[1])));
+ selected=shuffle([...hardPick,...remaining]).slice(0,GAME_QUESTION_COUNT);
+ if(selected.length<GAME_QUESTION_COUNT){
+   if(btn){btn.disabled=false;btn.textContent='▶️ Start Game'}
+   setHostStatus('Question selection error. Please start a new game.'); return;
+ }
+ // Reserve every question immediately. Even if a game is stopped early, a used
+ // question is never reused. This is what makes the history truly "ever" for this host.
+ markUsed(selected);
+ round1=shuffle(selected.slice(0,25));
+ halftime=shuffle(selected.slice(25,30));
+ round2=shuffle(selected.slice(30,60));
+ const finalCandidates=selected.filter(q=>q[4]==='hard');
+ currentFinal=(finalCandidates.length?finalCandidates[finalCandidates.length-1]:selected[60]);
+ selected=selected.filter(q=>normalizeQuestion(q[1])!==normalizeQuestion(currentFinal[1]));
+ // Keep 60 non-final questions after pulling out the final.
+ if(selected.length>60) selected=selected.slice(0,60);
+ if(selected.length<60){setHostStatus('Could not build the full game. Please try again.');return;}
+ qIndex=0;stage='round1';gameStarted=true;
+ if(btn) btn.classList.add('hidden');
+ broadcast({t:'stage',stage:'round1',categories:[...selectedCategories]});
+ setHostStatus('Round 1 is underway. Questions are permanently reserved as used.');
+ nextQuestion();
+}
+
+function nextQuestion(){
+ if(stage==='round1' && qIndex>=ROUND1_COUNT){showIntermission('HALFTIME','🍿 HALFTIME!','Five quick questions before Round 2.');return}
+ if(stage==='round2' && qIndex>=ROUND2_COUNT){showFinalHost();return}
+ let pool=stage==='round1'?round1:round2;
+ let q=pool[qIndex];
+ current={...q,index:qIndex,value:stage==='round1'?((qIndex%5)+1)*100:((qIndex%5)+1)*200};
+ responses={};revealed=false;
+ Object.values(players).forEach(p=>p.answered=false);
+ renderQuestion();
+ const endsAt=Date.now()+QUESTION_SECONDS*1000; broadcast({t:'question',stage,number:qIndex+1,total:stage==='round1'?25:30,cat:q[0],q:q[1],a:q[2],value:current.value,endsAt}); startHostTimer(QUESTION_SECONDS,()=>{if(current&&!revealed)revealCurrent()});
+}
+
+function renderQuestion(){
+ document.getElementById('hostQuestionCard').classList.remove('hidden');
+ document.getElementById('hostIntermission').classList.add('hidden');
+ document.getElementById('hostFinal').classList.add('hidden');
+ document.getElementById('hqRound').textContent=stage==='round1'?'ROUND 1':'ROUND 2';
+ document.getElementById('hqCat').textContent=current[0];
+ document.getElementById('hqValue').textContent=money(current.value);
+ document.getElementById('hqProgress').textContent=`Question ${current.index+1} of ${stage==='round1'?25:30}`;
+ document.getElementById('hqText').textContent=current[1];
+ document.getElementById('hqAnswers').innerHTML=current[2].map((a,i)=>`<button id="ha${i}">${esc(a)}</button>`).join('');
+ document.getElementById('responses').innerHTML='<div class="small">Waiting for answers...</div>';
+ renderProgress();
+}
+
+function renderResponses(){
+ const vals=Object.values(responses);
+ document.getElementById('responses').innerHTML=vals.length
+ ? vals.map(r=>`<div class="player"><span>${esc(r.name)} — ${esc(current[2][r.answer])}</span><span>${r.correct?'✓':'✗'}</span></div>`).join('')
+ : '<div class="small">Waiting for answers...</div>';
+}
+
+function revealCurrent(){
+ if(!current)return;
+ if(timerHandle){clearInterval(timerHandle);timerHandle=null}
+ revealed=true;
+ current[2].forEach((_,i)=>{
+   const b=document.getElementById('ha'+i); if(!b)return;
+   b.classList.toggle('correct',i===current[3]);
+   b.classList.toggle('wrong',i!==current[3] && responses && Object.values(responses).some(r=>r.answer===i));
+ });
+ renderResponses();
+ broadcast({t:'reveal',correct:current[3]});
+}
+
+function continueGame(){
+ if(stage==='halftimeQ'){continueHalftime();return}
+ if(!current)return;
+ stopTimers(); current=null; responses={}; qIndex++;
+ document.getElementById('hostQuestionCard').classList.add('hidden');
+ broadcast({t:'clear'});
+ nextQuestion();
+}
+
+function showIntermission(title,text){
+ stage='halftime'; current=null; qIndex=0;
+ document.getElementById('hostQuestionCard').classList.add('hidden');
+ document.getElementById('hostIntermission').classList.remove('hidden');
+ document.getElementById('intermissionTitle').textContent=title;
+ document.getElementById('intermissionText').textContent=text;
+ document.getElementById('intermissionScores').textContent='Scores at the half: '+Object.values(players).sort((a,b)=>b.score-a.score).map(p=>p.name+' '+money(p.score)).join(' • ');
+ document.getElementById('intermissionBtn').textContent='▶️ Start Halftime';
+ broadcast({t:'halftime',p:safePlayers()});
+ renderProgress();
+}
+
+function beginNextStage(){
+ if(stage==='halftime'){
+   stage='halftimeQ'; qIndex=0; current=null; halftimeQuestion();
+ }
+ else if(stage==='betweenRounds'){
+   stage='round2'; qIndex=0; broadcast({t:'stage',stage:'round2'}); setHostStatus('Round 2 is underway.'); nextQuestion();
+ }
+}
+
+function halftimeQuestion(){
+ if(qIndex>=HALFTIME_COUNT){showIntermission('ROUND 2','🏈 ROUND 2','Thirty harder questions. Point values increase.');stage='betweenRounds';document.getElementById('intermissionBtn').textContent='▶️ Start Round 2';return}
+ const q=halftime[qIndex];
+ current={...q,index:qIndex,value:200};
+ responses={};revealed=false;
+ Object.values(players).forEach(p=>p.answered=false);
+ document.getElementById('hostQuestionCard').classList.remove('hidden');
+ document.getElementById('hostIntermission').classList.add('hidden');
+ document.getElementById('hqRound').textContent='HALFTIME';
+ document.getElementById('hqCat').textContent='Halftime Challenge';
+ document.getElementById('hqValue').textContent=money(200);
+ document.getElementById('hqProgress').textContent=`Halftime Question ${qIndex+1} of 5`;
+ document.getElementById('hqText').textContent=q[1];
+ document.getElementById('hqAnswers').innerHTML=q[2].map((a,i)=>`<button id="ha${i}">${esc(a)}</button>`).join('');
+ document.getElementById('responses').innerHTML='<div class="small">Waiting for answers...</div>';
+ const endsAt=Date.now()+HALFTIME_SECONDS*1000; broadcast({t:'question',stage:'halftime',number:qIndex+1,total:5,cat:'Halftime Challenge',q:q[1],a:q[2],value:200,endsAt}); startHostTimer(HALFTIME_SECONDS,()=>{if(current&&!revealed)revealCurrent()});
+ renderProgress();
+}
+
+function continueHalftime(){
+ stopTimers(); current=null;responses={};qIndex++;
+ document.getElementById('hostQuestionCard').classList.add('hidden');
+ broadcast({t:'clear'});
+ if(qIndex>=5){
+   stage='betweenRounds';
+   showIntermission('ROUND 2','🏈 ROUND 2','Thirty harder questions. Point values increase.');
+   document.getElementById('intermissionBtn').textContent='▶️ Start Round 2';
+ } else halftimeQuestion();
+}
+
+function showFinalHost(){
+ stopTimers(); stage='final'; current={...currentFinal,value:0}; finalResponses={};finalRevealed=false;
+ document.getElementById('hostQuestionCard').classList.add('hidden');
+ document.getElementById('hostIntermission').classList.add('hidden');
+ document.getElementById('hostFinal').classList.remove('hidden');
+ document.getElementById('finalQuestionText').textContent=currentFinal[1];
+ document.getElementById('finalResponses').innerHTML='<div class="small">Waiting for wagers and answers...</div>';
+ broadcast({t:'final',q:currentFinal[1],a:currentFinal[2],endsAt:Date.now()+FINAL_SECONDS*1000});
+ startFinalHostTimer(FINAL_SECONDS);
+ renderProgress();
+}
+
+function renderFinalResponses(){
+ const vals=Object.values(finalResponses);
+ document.getElementById('finalResponses').innerHTML=vals.length
+ ? vals.map(r=>`<div class="player"><span>${esc(r.name)} — wager ${r.wager} — answer ${esc(currentFinal[2][r.answer])}</span><span>${finalRevealed?(r.answer===currentFinal[3]?'✓':'✗'):'🔒'}</span></div>`).join('')
+ : '<div class="small">Waiting for wagers and answers...</div>';
+}
+
+function revealFinal(){
+ if(finalTimerHandle){clearInterval(finalTimerHandle);finalTimerHandle=null}
+ finalRevealed=true;
+ Object.keys(finalResponses).forEach(k=>{
+   const r=finalResponses[k], p=players[k]; if(!p)return;
+   if(r.answer===currentFinal[3]) p.score+=r.wager; else p.score-=r.wager;
+ });
+ renderPlayers(); renderFinalResponses();
+ broadcast({t:'finalReveal',correct:currentFinal[3],p:safePlayers()});
+}
+
+function finishGame(){
+ broadcast({t:'end',p:safePlayers()});
+ showFinal(safePlayers());
+}
+
+function showFinal(p){
+ show('scores');
+ const arr=Object.values(p).sort((a,b)=>b.score-a.score);
+ document.getElementById('finalScores').innerHTML=arr.map((x,i)=>`<div class="player rank"><span>${i+1}. ${esc(x.name)}</span><span class="score">${money(x.score)}</span></div>`).join('')
+ || '<div class="small">No scores yet.</div>';
+}
+
+function renderProgress(){
+ let text='';
+ if(stage==='round1') text=`Round 1 • ${Math.min(qIndex,25)} / 25`;
+ else if(stage==='halftime'||stage==='halftimeQ') text='Halftime • 5 questions';
+ else if(stage==='betweenRounds') text='Halftime complete • Round 2 ready';
+ else if(stage==='round2') text=`Round 2 • ${Math.min(qIndex,30)} / 30`;
+ else if(stage==='final') text='Final Wager';
+ else text='Pre-game';
+ document.getElementById('progressBoard').innerHTML=`<div class="boardItem" style="grid-column:1/-1"><b>${text}</b></div>`;
+}
+
+function joinGame(){
+ room=document.getElementById('codeInput').value.trim();
+ const name=document.getElementById('nameInput').value.trim()||'Player';
+ if(room.length!==6){document.getElementById('joinStatus').textContent='Enter the 6-digit code.';return}
+ show('playerGame'); document.getElementById('pgStatus').textContent='Connecting...';
+ peer=new Peer();
+ peer.on('open',()=>{
+   conn=peer.connect('pgc-big-'+room);
+   conn.on('open',()=>{conn.send({t:'join',name});document.getElementById('pgStatus').textContent='Connected! Waiting for the host...'});
+   conn.on('data',playerData);
+ });
+ peer.on('error',()=>document.getElementById('pgStatus').textContent='Could not connect. Check the code and try again.');
+}
+
+function playerData(d){
+ if(d.t==='players'){playerScore=Object.values(d.p).find(x=>x.name===document.getElementById('nameInput').value.trim())?.score||playerScore}
+ if(d.t==='stage'){document.getElementById('pgRound').textContent=d.stage==='round1'?'🏈 ROUND 1': '🏈 ROUND 2';}
+ if(d.t==='halftime'){document.getElementById('pgRound').textContent='🍿 HALFTIME';document.getElementById('pgQuestion').textContent='Get ready for the halftime challenge!';document.getElementById('pgAnswers').innerHTML='';document.getElementById('pgStatus').textContent='Waiting for the host...';}
+ if(d.t==='question')renderPlayerQuestion(d);
+ if(d.t==='clear'){if(playerTimerHandle){clearInterval(playerTimerHandle);playerTimerHandle=null} document.getElementById('pgQuestion').textContent='Waiting for the next question...';document.getElementById('pgAnswers').innerHTML='';document.getElementById('pgStatus').textContent='Waiting for the host...';}
+ if(d.t==='reveal'){Array.from(document.querySelectorAll('#pgAnswers button')).forEach((b,i)=>b.classList.toggle('correct',i===d.correct));}
+ if(d.t==='final')renderFinalPlayer(d);
+ if(d.t==='finalReveal'){if(playerTimerHandle){clearInterval(playerTimerHandle);playerTimerHandle=null}
+   Array.from(document.querySelectorAll('#pgAnswers button')).forEach((b,i)=>b.classList.toggle('correct',i===d.correct));
+   document.getElementById('pgStatus').textContent='Final answer revealed! Waiting for the final results.';
+ }
+ if(d.t==='end')showFinal(d.p);
+}
+
+function renderPlayerQuestion(d){
+ document.getElementById('pgRound').textContent=d.stage==='halftime'?'🍿 HALFTIME':(d.stage==='round1'?'🏈 ROUND 1':'🏈 ROUND 2');
+ document.getElementById('pgProgress').textContent=`Question ${d.number} of ${d.total} • ${money(d.value)}`;
+ document.getElementById('pgCat').textContent=d.cat;
+ document.getElementById('pgQuestion').textContent=d.q;
+ document.getElementById('pgWagerBox').classList.add('hidden');
+ document.getElementById('submitWagerBtn').classList.add('hidden');
+ playerAnswered=false;
+ document.getElementById('pgAnswers').innerHTML=d.a.map((a,i)=>`<button onclick="sendAnswer(${i},this)">${esc(a)}</button>`).join('');
+ document.getElementById('pgStatus').textContent='Choose your answer.';
+ startPlayerTimer(d.endsAt);
+}
+
+function sendAnswer(i,b){
+ if(!conn||playerAnswered)return;
+ playerAnswered=true;
+ if(playerTimerHandle){clearInterval(playerTimerHandle);playerTimerHandle=null}
+ Array.from(document.querySelectorAll('#pgAnswers button')).forEach(x=>x.disabled=true);
+ b.style.outline='3px solid #f5c542';
+ conn.send({t:'answer',i});
+ document.getElementById('pgStatus').textContent='Answer submitted! Waiting for the host.';
+}
+
+function renderFinalPlayer(d){
+ document.getElementById('pgRound').textContent='🏆 FINAL QUESTION';
+ document.getElementById('pgProgress').textContent='Your final wager can be $0 up to your current score.';
+ document.getElementById('pgCat').textContent='Final Wager';
+ document.getElementById('pgQuestion').textContent=d.q;
+ document.getElementById('pgAnswers').innerHTML=d.a.map((a,i)=>`<button onclick="selectFinalAnswer(${i},this)">${esc(a)}</button>`).join('');
+ document.getElementById('pgWagerBox').classList.remove('hidden');
+ document.getElementById('submitWagerBtn').classList.remove('hidden');
+ document.getElementById('pgStatus').textContent='Enter your wager, choose an answer, then submit.';
+ startPlayerTimer(d.endsAt);
+ finalWager=0; playerAnswered=false; window.finalAnswer=null;
+}
+
+function selectFinalAnswer(i,b){
+ window.finalAnswer=i;
+ Array.from(document.querySelectorAll('#pgAnswers button')).forEach(x=>x.style.outline='');
+ b.style.outline='3px solid #f5c542';
+}
+
+function submitFinalWager(){
+ if(!conn)return;
+ const wager=Math.max(0,Number(document.getElementById('wagerInput').value)||0);
+ if(window.finalAnswer===null||window.finalAnswer===undefined){modal('Choose an answer','Pick an answer before submitting your final wager.');return}
+ if(playerTimerHandle){clearInterval(playerTimerHandle);playerTimerHandle=null}
+ conn.send({t:'finalAnswer',i:window.finalAnswer,wager});
+ document.getElementById('submitWagerBtn').disabled=true;
+ document.getElementById('pgStatus').textContent='Final wager submitted. Good luck!';
+}
+</script>
+</body>
+</html>
